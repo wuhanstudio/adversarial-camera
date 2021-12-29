@@ -1,5 +1,7 @@
 ## Adversarial Camera
 
+![](doc/filter.jpg)
+
 Editing the `/boot/cmdline.txt` to enable the OTG mode:
 
 ```
