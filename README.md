@@ -102,17 +102,6 @@ and Robert Baldyga's patchset
         -u device      UVC Video Output device
         -v device      V4L2 Video Capture device
 
-## Build  
-
-- host:  
-    make
-- Cross compile:  
-    make ARCH=arch CROSS_COMPILE=cross_compiler  
-    eg:  
-    make ARCH=arm CROSS_COMPILE=arm-hisiv600-linux-  
-- or:  
-    set ARCH, CROSS_COMPILE, KERNEL_DIR in Makefile
-
 ## Change log
 
 - Apply patchset [Bugfixes for UVC gadget test application](https://www.spinics.net/lists/linux-usb/msg99220.html)  
