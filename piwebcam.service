@@ -1,0 +1,14 @@
+[Unit]
+Description=Stars pi webcam service
+
+[Service]
+ExecStart=/home/pi/adversarial-camera/piwebcam
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=piwebcam
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/adversarial-camera/
+
+[Install]
+WantedBy=basic.target
