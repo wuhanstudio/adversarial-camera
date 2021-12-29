@@ -1,5 +1,7 @@
 ## Adversarial Camera
 
+An adversarial USB camera that fools Deep Learning models for object detection.
+
 ![](doc/demo.png)
 ![](doc/filter.jpg)
 
