@@ -36,14 +36,18 @@
 #include <linux/usb/video.h>
 #include <linux/videodev2.h>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "uvc.h"
 
 
 #define WIDTH1  640
 #define HEIGHT1 360
 
-#define WIDTH2	1920
-#define HEIGHT2 1080
+#define WIDTH2	1280
+#define HEIGHT2 720
 
 /* Enable debug prints. */
 #undef ENABLE_BUFFER_DEBUG
@@ -487,6 +491,17 @@ static int v4l2_process_data(struct v4l2_device *dev)
 #ifdef ENABLE_BUFFER_DEBUG
     printf("Dequeueing buffer at V4L2 side = %d\n", vbuf.index);
 #endif
+
+
+    // Decode YUYV
+    cv::Mat img = cv::Mat(cv::Size(1280, 720), CV_8UC2, dev->mem[vbuf.index].start);
+    cv::Mat out_img;
+    cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+
+    // imwrite("output.jpg", out_img);
+
+    imshow("view", out_img);
+    cv::waitKey(1);
 
     /* Queue video buffer to UVC domain. */
     CLEAR(ubuf);
@@ -2043,7 +2058,7 @@ static void usage(const char *argv0)
             "1 = USER_PTR\n");
     fprintf(stderr,
             " -r <resolution> Select frame resolution:\n\t"
-            "0 = HEIGHT1p, VGA (WIDTH1xHEIGHT1)\n\t"
+            "0 = 360p, VGA (WIDTH1xHEIGHT1)\n\t"
             "1 = 720p, (WIDTH2xHEIGHT2)\n");
     fprintf(stderr,
             " -s <speed>	Select USB bus speed (b/w 0 and 2)\n\t"
@@ -2188,10 +2203,11 @@ int main(int argc, char *argv[])
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmt.fmt.pix.width = (default_resolution == 0) ? WIDTH1 : WIDTH2;
         fmt.fmt.pix.height = (default_resolution == 0) ? HEIGHT1 : HEIGHT2;
-        fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
-                                                      : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
+        // fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
+        //                                               : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
+	printf("Format: %d\n", default_format);
         fmt.fmt.pix.pixelformat = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
-        fmt.fmt.pix.field = V4L2_FIELD_ANY;
+        fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
         /* Open the V4L2 device. */
         ret = v4l2_open(&vdev, v4l2_devname, &fmt);
