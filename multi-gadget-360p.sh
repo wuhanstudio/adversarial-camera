@@ -24,32 +24,32 @@ mkdir /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0
 mkdir -p /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/control/header/h
 ln -s /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/control/header/h /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/control/class/fs
 
-mkdir -p /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwFrameInterval
-5000000
-EOF
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/wWidth
-1280
-EOF
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/wHeight
-720
-EOF
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMinBitRate
-29491200
-EOF
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMaxBitRate
-29491200
-EOF
-cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMaxVideoFrameBufferSize
-1843200
-EOF
-
-#mkdir -p /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/uncompressed/u/360p
-#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/uncompressed/u/360p/dwFrameInterval
-#666666
-#1000000
+#mkdir -p /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwFrameInterval
 #5000000
 #EOF
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/wWidth
+#1280
+#EOF
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/wHeight
+#720
+#EOF
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMinBitRate
+#29491200
+#EOF
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMaxBitRate
+#29491200
+#EOF
+#cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/mjpeg/m/720p/dwMaxVideoFrameBufferSize
+#1843200
+#EOF
+
+mkdir -p /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/uncompressed/u/360p
+cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/uncompressed/u/360p/dwFrameInterval
+666666
+1000000
+5000000
+EOF
 #cat <<EOF > /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/uncompressed/u/720p/wWidth
 #1280
 #EOF
@@ -68,8 +68,8 @@ EOF
 
 mkdir /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/header/h
 cd /sys/kernel/config/usb_gadget/pi4/functions/uvc.usb0/streaming/header/h
-ln -s ../../mjpeg/m
-#ln -s ../../uncompressed/u
+#ln -s ../../mjpeg/m
+ln -s ../../uncompressed/u
 cd ../../class/fs
 ln -s ../../header/h
 cd ../../class/hs
