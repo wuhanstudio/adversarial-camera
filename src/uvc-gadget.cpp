@@ -494,14 +494,14 @@ static int v4l2_process_data(struct v4l2_device *dev)
 
 
     // Decode YUYV
-    cv::Mat img = cv::Mat(cv::Size(1280, 720), CV_8UC2, dev->mem[vbuf.index].start);
-    cv::Mat out_img;
-    cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+    // cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
+    // cv::Mat out_img;
+    // cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
     // imwrite("output.jpg", out_img);
 
-    imshow("view", out_img);
-    cv::waitKey(1);
+    // imshow("view", out_img);
+    // cv::waitKey(1);
 
     /* Queue video buffer to UVC domain. */
     CLEAR(ubuf);
@@ -580,7 +580,8 @@ static int v4l2_get_format(struct v4l2_device *dev)
 static int v4l2_set_format(struct v4l2_device *dev, struct v4l2_format *fmt)
 {
     int ret;
-
+    fmt->fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG; //TODO: this is janky, but works for https://github.com/jacksonliam/mjpg-streamer/issues/298
+    fmt->fmt.pix.field = V4L2_FIELD_ANY;
     ret = ioctl(dev->v4l2_fd, VIDIOC_S_FMT, fmt);
     if (ret < 0) {
         printf("V4L2: Unable to set format %s (%d).\n", strerror(errno), errno);
@@ -2203,9 +2204,9 @@ int main(int argc, char *argv[])
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         fmt.fmt.pix.width = (default_resolution == 0) ? WIDTH1 : WIDTH2;
         fmt.fmt.pix.height = (default_resolution == 0) ? HEIGHT1 : HEIGHT2;
-        // fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
-        //                                               : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
-	printf("Format: %d\n", default_format);
+        fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
+                                                       : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
+	printf("Format: %d 0:YUYV 1:MJPEG\n", default_format);
         fmt.fmt.pix.pixelformat = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
         fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
