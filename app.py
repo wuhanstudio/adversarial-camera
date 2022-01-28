@@ -8,6 +8,7 @@ import numpy as np
 from threading import Thread, Event
 from logging import basicConfig, getLogger
 from PIL import Image
+import tensorflow as tf
 
 # Set up logger
 basicConfig()
