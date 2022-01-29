@@ -589,6 +589,49 @@ static int v4l2_process_data(struct v4l2_device *dev)
     printf("Dequeueing buffer at V4L2 side = %d\n", vbuf.index);
 #endif
 
+    // MJPEG --> MJPEG
+    if(0) {
+
+    // Decode JPEG
+    cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(1280, 720), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+    if ( out_img.data == NULL )   
+    {
+        printf("Error decoding");
+        // Error reading raw image data
+    }
+
+    // RGB to YV12
+    // cv::Mat img;
+    // cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
+
+    // imshow("view", img);
+    // cv::waitKey(1);
+
+    // YV12 to JPEG
+    // uint8_t* outbuffer = NULL;
+    // cv::Mat input = img.reshape(1, img.total()*img.channels());
+    // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
+    // uint64_t outlen = compressYV12toJPEG(vec.data(), 1280, 720, outbuffer);
+
+    // memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
+    // vbuf.length = outlen;
+    // vbuf.bytesused = outlen;
+
+    // Encode JPEG
+    std::vector<uchar> outbuffer;
+    cv::imencode(".jpg", out_img, outbuffer);
+
+    uint32_t outlen = sizeof(uchar) * outbuffer.size();
+    memcpy(dev->mem[vbuf.index].start, outbuffer.data(), outlen);
+    vbuf.length = outlen;
+    vbuf.bytesused = outlen;
+
+    printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
+    }
+
+    // YUYV --> MJPEG
+    if(1) 
+    {
     // Decode YUYV
     cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
     cv::Mat out_img;
@@ -617,11 +660,13 @@ static int v4l2_process_data(struct v4l2_device *dev)
 
     // printf("libjpeg produced %d bytes\n", outlen);
 
+    // Copy to UVC device
     memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
     vbuf.length = outlen;
     vbuf.bytesused = outlen;
 
-    // dev->mem[vbuf.index].length = outlen;
+    // dev->mem[vbuf.index].length = outlen; THIS CANNOT BE SET, CAUSES ERROR
+
     // printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
 
     // Write JPEG to file 
@@ -629,6 +674,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
     // std::ofstream ofs("output.jpg", std::ios_base::binary);
     // ofs.write((const char*) &output[0], output.size());
     // ofs.close();
+    }
 
     /* Queue video buffer to UVC domain. */
     CLEAR(ubuf);
