@@ -40,8 +40,62 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cstdint>
+#include <memory>
+
+#include <jpeglib.h>
+
 #include "uvc.h"
 
+uint32_t compressYUYVtoJPEG(const uint8_t* input, const int width, const int height, uint8_t* &outbuffer) {
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+    JSAMPROW row_ptr[1];
+    int row_stride;
+
+    // uint8_t* outbuffer = NULL;
+    uint32_t outlen = 0;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+    jpeg_mem_dest(&cinfo, &outbuffer, &outlen);
+
+    // jrow is a libjpeg row of samples array of 1 row pointer
+    cinfo.image_width = width & -1;
+    cinfo.image_height = height & -1;
+    cinfo.input_components = 3;
+    cinfo.in_color_space = JCS_YCbCr; //libJPEG expects YUV 3bytes, 24bit, YUYV --> YUV YUV YUV
+
+    jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, 92, TRUE);
+    jpeg_start_compress(&cinfo, TRUE);
+
+    std::vector<uint8_t> tmprowbuf(width * 3);
+
+    JSAMPROW row_pointer[1];
+    row_pointer[0] = &tmprowbuf[0];
+    while (cinfo.next_scanline < cinfo.image_height) {
+        unsigned i, j;
+        unsigned offset = cinfo.next_scanline * cinfo.image_width * 2; //offset to the correct row
+        for (i = 0, j = 0; i < cinfo.image_width * 2; i += 4, j += 6) { //input strides by 4 bytes, output strides by 6 (2 pixels)
+            tmprowbuf[j + 0] = input[offset + i + 0]; // Y (unique to this pixel)
+            tmprowbuf[j + 1] = input[offset + i + 1]; // U (shared between pixels)
+            tmprowbuf[j + 2] = input[offset + i + 3]; // V (shared between pixels)
+            tmprowbuf[j + 3] = input[offset + i + 2]; // Y (unique to this pixel)
+            tmprowbuf[j + 4] = input[offset + i + 1]; // U (shared between pixels)
+            tmprowbuf[j + 5] = input[offset + i + 3]; // V (shared between pixels)
+        }
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    }
+
+    jpeg_finish_compress(&cinfo);
+    jpeg_destroy_compress(&cinfo);
+
+    return outlen;
+}
 
 #define WIDTH1  640
 #define HEIGHT1 360
@@ -492,16 +546,31 @@ static int v4l2_process_data(struct v4l2_device *dev)
     printf("Dequeueing buffer at V4L2 side = %d\n", vbuf.index);
 #endif
 
-
     // Decode YUYV
-    // cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
-    // cv::Mat out_img;
-    // cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+    cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
+    cv::Mat out_img;
+    cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
-    // imwrite("output.jpg", out_img);
+    uint8_t* outbuffer = NULL;
+    cv::Mat input = img.reshape(1, img.total()*img.channels());
+    std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
+    uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
 
-    // imshow("view", out_img);
-    // cv::waitKey(1);
+    imshow("view", out_img);
+    cv::waitKey(1);
+
+    printf("libjpeg produced %d bytes\n", outlen);
+    memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
+    vbuf.length = outlen;
+    vbuf.bytesused = outlen;
+    // dev->mem[vbuf.index].length = outlen;
+    printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
+
+    // Write JPEG to file 
+    // std::vector<uint8_t> output = std::vector<uint8_t>(outbuffer, outbuffer + outlen);
+    // std::ofstream ofs("output.jpg", std::ios_base::binary);
+    // ofs.write((const char*) &output[0], output.size());
+    // ofs.close();
 
     /* Queue video buffer to UVC domain. */
     CLEAR(ubuf);

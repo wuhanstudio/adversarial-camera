@@ -13,7 +13,7 @@ uvc-gadget.o: uvc-gadget.cpp
 	$(CC) $(CFLAGS) -c $@ $^
 
 uvc-gadget: uvc-gadget.o
-	$(CC) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv`
+	$(CC) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv libjpeg`
 
 clean:
 	rm -f *.o
