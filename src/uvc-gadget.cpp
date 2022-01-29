@@ -97,14 +97,14 @@ uint32_t compressYUYVtoJPEG(const uint8_t* input, const int width, const int hei
     return outlen;
 }
 
-uint64_t compressYV12toJPEG(const uint8_t* input, const int width, const int height, uint8_t* &outbuffer) {
+uint32_t compressYV12toJPEG(const uint8_t* input, const int width, const int height, uint8_t* &outbuffer) {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
     JSAMPROW row_ptr[1];
     int row_stride;
 
     // uint8_t* outbuffer = NULL;
-    uint64_t outlen = 0;
+    uint32_t outlen = 0;
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
@@ -604,7 +604,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
     uint8_t* outbuffer = NULL;
     cv::Mat input = img.reshape(1, img.total()*img.channels());
     std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    uint64_t outlen = compressYV12toJPEG(vec.data(), 640, 360, outbuffer);
+    uint32_t outlen = compressYV12toJPEG(vec.data(), 640, 360, outbuffer);
 
     // YUYV to JPEG
     // uint8_t* outbuffer = NULL;
