@@ -34,6 +34,14 @@ $ sudo systemctl enable piwebcam
 $ cd src && make
 ```
 
+```
+# gst-launch-1.0 videotestsrc ! v4l2sink device=/dev/video0
+# sudo ffmpeg -f v4l2 -input_format yuyv422 -i /dev/video40  -c:v mjpeg  -f mjpeg - > /dev/video42
+# gst-launch-1.0 videotestsrc ! "video/x-raw, width=640, height=360, fps=30/1" ! avenc_mjpeg !  v4l2sink device=/dev/video42
+```
+
+
+
 If everything works fine, after rebooting you should see:
 
 ```
@@ -113,4 +121,3 @@ and Robert Baldyga's patchset
 
 - Add Readme/.gitignore and documentations  
   Copy linux-3.18.y/drivers/usb/gadget/function/uvc.h into repository, change include path for build
-

@@ -2,13 +2,13 @@
 Description=Stars pi webcam service
 
 [Service]
-ExecStart=/home/pi/adversarial-camera/piwebcam
+ExecStart=/home/pi/adversarial-camera/configfs/piwebcam
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=piwebcam
 User=pi
 Group=pi
-WorkingDirectory=/home/pi/adversarial-camera/
+WorkingDirectory=/home/pi/adversarial-camera/configfs
 
 [Install]
 WantedBy=basic.target
