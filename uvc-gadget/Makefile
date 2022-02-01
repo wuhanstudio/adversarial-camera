@@ -10,7 +10,7 @@ KERNEL_INCLUDE	:= -I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/arch/$(ARCH)/include
 all: uvc-gadget
 
 uvc-gadget.o: uvc-gadget.cpp
-	$(CC) $(CFLAGS) -c $@ $^
+	$(CC) $(CFLAGS) -c $^
 
 uvc-gadget: uvc-gadget.o
 	$(CC) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv libjpeg`
