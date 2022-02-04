@@ -204,10 +204,6 @@ static void usage(const char *argv0)
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
     fprintf(stderr,
-            " -o <IO method> Select UVC IO method:\n\t"
-            "0 = MMAP\n\t"
-            "1 = USER_PTR\n");
-    fprintf(stderr,
             " -r <resolution> Select frame resolution:\n\t"
             "0 = 360p, VGA (640x360)\n\t"
             "1 = 720p, HD (1280x720)\n");
@@ -237,7 +233,7 @@ int main(int argc, char *argv[])
 
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "f:o:r:u:v:h")) != -1) {
+    while ((opt = getopt(argc, argv, "f:r:u:v:h")) != -1) {
         switch (opt) {
             case 'f':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -246,16 +242,6 @@ int main(int argc, char *argv[])
                 }
 
                 default_format = atoi(optarg);
-                break;
-
-            case 'o':
-                if (atoi(optarg) < 0 || atoi(optarg) > 1) {
-                    usage(argv[0]);
-                    return 1;
-                }
-
-                uvc_io_method = atoi(optarg);
-                printf("UVC: IO method requested is %s\n", (uvc_io_method == IO_METHOD_MMAP) ? "MMAP" : "USER_PTR");
                 break;
 
             case 'r':
