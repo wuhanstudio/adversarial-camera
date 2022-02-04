@@ -204,8 +204,6 @@ static void usage(const char *argv0)
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
     fprintf(stderr, " -h	Print this help screen and exit\n");
-    fprintf(stderr, " -m	Streamin for ISOC (b/w 0 and 2)\n");
-    fprintf(stderr, " -n	Number of Video buffers (b/w 2 and 32)\n");
     fprintf(stderr,
             " -o <IO method> Select UVC IO method:\n\t"
             "0 = MMAP\n\t"
@@ -257,16 +255,6 @@ int main(int argc, char *argv[])
             case 'h':
                 usage(argv[0]);
                 return 1;
-
-            case 'n':
-                if (atoi(optarg) < 2 || atoi(optarg) > 32) {
-                    usage(argv[0]);
-                    return 1;
-                }
-
-                nbufs = atoi(optarg);
-                printf("Number of buffers requested = %d\n", nbufs);
-                break;
 
             case 'o':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
