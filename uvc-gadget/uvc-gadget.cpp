@@ -226,7 +226,6 @@ static void usage(const char *argv0)
     fprintf(stderr, "Usage: %s [options]\n", argv0);
     fprintf(stderr, "Available options are\n");
     fprintf(stderr, " -b		Use bulk mode\n");
-    fprintf(stderr, " -d		Do not use any real V4L2 capture device\n");
     fprintf(stderr,
             " -f <format>    Select frame format\n\t"
             "0 = V4L2_PIX_FMT_YUYV\n\t"
@@ -264,7 +263,6 @@ int main(int argc, char *argv[])
     fd_set fdsv, fdsu;
     int ret, opt, nfds;
     int bulk_mode = 0;
-    int dummy_data_gen_mode = 0;
     /* Frame format/resolution related params. */
     int default_format = 0;     /* V4L2_PIX_FMT_YUYV */
     int default_resolution = 0; /* VGA HEIGHT1p */
@@ -275,14 +273,10 @@ int main(int argc, char *argv[])
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "bdf:hm:n:o:r:s:t:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "bf:hm:n:o:r:s:t:u:v:")) != -1) {
         switch (opt) {
         case 'b':
             bulk_mode = 1;
-            break;
-
-        case 'd':
-            dummy_data_gen_mode = 1;
             break;
 
         case 'f':
@@ -371,26 +365,24 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!dummy_data_gen_mode) {
-        /*
-         * Try to set the default format at the V4L2 video capture
-         * device as requested by the user.
-         */
-        CLEAR(fmt);
-        fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        fmt.fmt.pix.width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
-        fmt.fmt.pix.height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
-        fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
-                                                       : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
+    /*
+        * Try to set the default format at the V4L2 video capture
+        * device as requested by the user.
+        */
+    CLEAR(fmt);
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt.fmt.pix.width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
+    fmt.fmt.pix.height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
+    fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
+                                                    : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
 	printf("Format: %d 0:YUYV 1:MJPEG\n", default_format);
-        fmt.fmt.pix.pixelformat = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
-        fmt.fmt.pix.field = V4L2_FIELD_NONE;
+    fmt.fmt.pix.pixelformat = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
+    fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
-        /* Open the V4L2 device. */
-        ret = v4l2_open(&vdev, v4l2_devname, &fmt);
-        if (vdev == NULL || ret < 0)
-            return 1;
-    }
+    /* Open the V4L2 device. */
+    ret = v4l2_open(&vdev, v4l2_devname, &fmt);
+    if (vdev == NULL || ret < 0)
+        return 1;
 
     /* Open the UVC device. */
     ret = uvc_open(&udev, uvc_devname);
@@ -399,12 +391,10 @@ int main(int argc, char *argv[])
 
     udev->uvc_devname = uvc_devname;
 
-    if (!dummy_data_gen_mode) {
-        vdev->v4l2_devname = v4l2_devname;
-        /* Bind UVC and V4L2 devices. */
-        udev->vdev = vdev;
-        vdev->udev = udev;
-    }
+    vdev->v4l2_devname = v4l2_devname;
+    /* Bind UVC and V4L2 devices. */
+    udev->vdev = vdev;
+    vdev->udev = udev;
 
     /* Set parameters as passed by user. */
     udev->width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
@@ -418,28 +408,23 @@ int main(int argc, char *argv[])
     udev->burst = burst;
     udev->speed = speed;
 
-    if (dummy_data_gen_mode)
-        /* UVC standalone setup. */
-        udev->run_standalone = 1;
 
-    if (!dummy_data_gen_mode) {
-        /* UVC - V4L2 integrated path */
-        vdev->nbufs = nbufs;
+    /* UVC - V4L2 integrated path */
+    vdev->nbufs = nbufs;
 
-        /*
-         * IO methods used at UVC and V4L2 domains must be
-         * complementary to avoid any memcpy from the CPU.
-         */
-        switch (uvc_io_method) {
-        case IO_METHOD_MMAP:
-            vdev->io = IO_METHOD_USERPTR;
-            break;
+    /*
+        * IO methods used at UVC and V4L2 domains must be
+        * complementary to avoid any memcpy from the CPU.
+        */
+    switch (uvc_io_method) {
+    case IO_METHOD_MMAP:
+        vdev->io = IO_METHOD_USERPTR;
+        break;
 
-        case IO_METHOD_USERPTR:
-        default:
-            vdev->io = IO_METHOD_MMAP;
-            break;
-        }
+    case IO_METHOD_USERPTR:
+    default:
+        vdev->io = IO_METHOD_MMAP;
+        break;
     }
 
     switch (speed) {
@@ -469,7 +454,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (!dummy_data_gen_mode && (IO_METHOD_MMAP == vdev->io)) {
+    if (IO_METHOD_MMAP == vdev->io) {
         /*
          * Ensure that the V4L2 video capture device has already some
          * buffers queued.
@@ -481,9 +466,7 @@ int main(int argc, char *argv[])
     uvc_events_init(udev);
 
     while (1) {
-        if (!dummy_data_gen_mode)
-            FD_ZERO(&fdsv);
-
+        FD_ZERO(&fdsv);
         FD_ZERO(&fdsu);
 
         /* We want both setup and data events on UVC interface.. */
@@ -493,19 +476,14 @@ int main(int argc, char *argv[])
         fd_set dfds = fdsu;
 
         /* ..but only data events on V4L2 interface */
-        if (!dummy_data_gen_mode)
-            FD_SET(vdev->v4l2_fd, &fdsv);
+        FD_SET(vdev->v4l2_fd, &fdsv);
 
         /* Timeout. */
         tv.tv_sec = 2;
         tv.tv_usec = 0;
 
-        if (!dummy_data_gen_mode) {
-            nfds = max(vdev->v4l2_fd, udev->uvc_fd);
-            ret = select(nfds + 1, &fdsv, &dfds, &efds, &tv);
-        } else {
-            ret = select(udev->uvc_fd + 1, NULL, &dfds, &efds, NULL);
-        }
+        nfds = max(vdev->v4l2_fd, udev->uvc_fd);
+        ret = select(nfds + 1, &fdsv, &dfds, &efds, &tv);
 
         if (-1 == ret) {
             printf("select error %d, %s\n", errno, strerror(errno));
@@ -524,12 +502,11 @@ int main(int argc, char *argv[])
             uvc_events_process(udev);
         if (FD_ISSET(udev->uvc_fd, &dfds))
             uvc_video_process(udev);
-        if (!dummy_data_gen_mode)
-            if (FD_ISSET(vdev->v4l2_fd, &fdsv))
-                v4l2_process_data(vdev);
+        if (FD_ISSET(vdev->v4l2_fd, &fdsv))
+            v4l2_process_data(vdev);
     }
 
-    if (!dummy_data_gen_mode && vdev->is_streaming) {
+    if (vdev->is_streaming) {
         /* Stop V4L2 streaming... */
         v4l2_stop_capturing(vdev);
         v4l2_uninit_device(vdev);
@@ -545,8 +522,7 @@ int main(int argc, char *argv[])
         udev->is_streaming = 0;
     }
 
-    if (!dummy_data_gen_mode)
-        v4l2_close(vdev);
+    v4l2_close(vdev);
 
     uvc_close(udev);
     return 0;
