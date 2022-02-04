@@ -80,7 +80,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
 #endif
 
     // MJPEG --> MJPEG
-    if(0) {
+    if(1) {
 
     // Decode JPEG
     cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(1280, 720), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
@@ -101,7 +101,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
     // uint8_t* outbuffer = NULL;
     // cv::Mat input = img.reshape(1, img.total()*img.channels());
     // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    // uint64_t outlen = yv12_to_jpeg(vec.data(), 1280, 720, outbuffer);
+    // uint64_t outlen = compressYV12toJPEG(vec.data(), 1280, 720, outbuffer);
 
     // memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
     // vbuf.length = outlen;
@@ -117,18 +117,36 @@ static int v4l2_process_data(struct v4l2_device *dev)
     vbuf.bytesused = outlen;
 
     printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
+    
     }
 
     // YUYV --> MJPEG
-    if(1) 
+    if(0) 
     {
+
     // Decode YUYV
     cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
     cv::Mat out_img;
     cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
+    // imshow("view", out_img.clone());
+    // cv::waitKey(1);
+
     // You may do image processing here
     // OpenCV Code
+    // int ch = (rand() % 5);
+    // int ch2 = (rand() % 50);
+    // if(ch == 0 && count <= 0){ 
+    //     cv::putText(out_img, "Hi, there", cv::Point2f(50, 100), cv::FONT_HERSHEY_SIMPLEX, 3, cv::Scalar(255, 0, 0), 2, cv::LINE_AA); 
+    // }
+
+    // if(ch2 == 5){
+	//     count = 10;
+    // }
+    // if (count > 0) {
+    //     cv::addWeighted(water_mark, 0.5, out_img.clone() , 0.5, 0, out_img);
+    //     count--;
+    // }
 
     // RGB to YV12
     cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
@@ -143,10 +161,8 @@ static int v4l2_process_data(struct v4l2_device *dev)
     // uint8_t* outbuffer = NULL;
     // cv::Mat input = img.reshape(1, img.total()*img.channels());
     // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    // uint32_t outlen = yuyv_to_jpeg(vec.data(), 640, 360, outbuffer);
+    // uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
 
-    // imshow("view", out_img);
-    // cv::waitKey(1);
 
     // printf("libjpeg produced %d bytes\n", outlen);
 
