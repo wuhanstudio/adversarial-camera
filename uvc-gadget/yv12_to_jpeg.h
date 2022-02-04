@@ -28,7 +28,7 @@ uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, u
     row_pointer[0] = &tmprowbuf[0];
 
     int u_offset = cinfo.image_width * cinfo.image_height;
-    int v_offset = (cinfo.image_width / 2) * (cinfo.image_height / 2);
+    int v_offset = u_offset + (cinfo.image_width / 2) * (cinfo.image_height / 2);
 
     while (cinfo.next_scanline < cinfo.image_height) {
         unsigned i, j;
@@ -36,7 +36,7 @@ uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, u
             // input strides by 1 bytes, output strides by 3 (2 pixels)
             tmprowbuf[j + 0] = input[i + cinfo.image_width * cinfo.next_scanline];
             tmprowbuf[j + 1] = input[i / 2 + u_offset + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)];
-            tmprowbuf[j + 2] = input[i / 2 + u_offset + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)];
+            tmprowbuf[j + 2] = input[i / 2 + v_offset + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)];
         }
         jpeg_write_scanlines(&cinfo, row_pointer, 1);
     }
