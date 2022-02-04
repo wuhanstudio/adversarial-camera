@@ -241,7 +241,6 @@ static void usage(const char *argv0)
 {
     fprintf(stderr, "Usage: %s [options]\n", argv0);
     fprintf(stderr, "Available options are\n");
-    fprintf(stderr, " -b		Use bulk mode\n");
     fprintf(stderr,
             " -f <format>    Select frame format\n\t"
             "0 = V4L2_PIX_FMT_YUYV\n\t"
@@ -278,7 +277,6 @@ int main(int argc, char *argv[])
 
     fd_set fdsv, fdsu;
     int ret, opt, nfds;
-    int bulk_mode = 0;
     /* Frame format/resolution related params. */
     int default_format = 0;     /* V4L2_PIX_FMT_YUYV */
     int default_resolution = 0; /* VGA HEIGHT1p */
@@ -289,95 +287,91 @@ int main(int argc, char *argv[])
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "bf:hm:n:o:r:s:t:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:hm:n:o:r:s:t:u:v:")) != -1) {
         switch (opt) {
-        case 'b':
-            bulk_mode = 1;
-            break;
+            case 'f':
+                if (atoi(optarg) < 0 || atoi(optarg) > 1) {
+                    usage(argv[0]);
+                    return 1;
+                }
 
-        case 'f':
-            if (atoi(optarg) < 0 || atoi(optarg) > 1) {
+                default_format = atoi(optarg);
+                break;
+
+            case 'h':
                 usage(argv[0]);
                 return 1;
-            }
 
-            default_format = atoi(optarg);
-            break;
+            case 'm':
+                if (atoi(optarg) < 0 || atoi(optarg) > 2) {
+                    usage(argv[0]);
+                    return 1;
+                }
 
-        case 'h':
-            usage(argv[0]);
-            return 1;
+                mult = atoi(optarg);
+                printf("Requested Mult value = %d\n", mult);
+                break;
 
-        case 'm':
-            if (atoi(optarg) < 0 || atoi(optarg) > 2) {
+            case 'n':
+                if (atoi(optarg) < 2 || atoi(optarg) > 32) {
+                    usage(argv[0]);
+                    return 1;
+                }
+
+                nbufs = atoi(optarg);
+                printf("Number of buffers requested = %d\n", nbufs);
+                break;
+
+            case 'o':
+                if (atoi(optarg) < 0 || atoi(optarg) > 1) {
+                    usage(argv[0]);
+                    return 1;
+                }
+
+                uvc_io_method = atoi(optarg);
+                printf("UVC: IO method requested is %s\n", (uvc_io_method == IO_METHOD_MMAP) ? "MMAP" : "USER_PTR");
+                break;
+
+            case 'r':
+                if (atoi(optarg) < 0 || atoi(optarg) > 1) {
+                    usage(argv[0]);
+                    return 1;
+                }
+
+                default_resolution = atoi(optarg);
+                break;
+
+            case 's':
+                if (atoi(optarg) < 0 || atoi(optarg) > 2) {
+                    usage(argv[0]);
+                    return 1;
+                }
+
+                speed = atoi(optarg);
+                break;
+
+            case 't':
+                if (atoi(optarg) < 0 || atoi(optarg) > 15) {
+                    usage(argv[0]);
+                    return 1;
+                }
+
+                burst = atoi(optarg);
+                printf("Requested Burst value = %d\n", burst);
+                break;
+
+            case 'u':
+                uvc_devname = optarg;
+                break;
+
+            case 'v':
+                v4l2_devname = optarg;
+                break;
+
+            default:
+                printf("Invalid option '-%c'\n", opt);
                 usage(argv[0]);
                 return 1;
-            }
-
-            mult = atoi(optarg);
-            printf("Requested Mult value = %d\n", mult);
-            break;
-
-        case 'n':
-            if (atoi(optarg) < 2 || atoi(optarg) > 32) {
-                usage(argv[0]);
-                return 1;
-            }
-
-            nbufs = atoi(optarg);
-            printf("Number of buffers requested = %d\n", nbufs);
-            break;
-
-        case 'o':
-            if (atoi(optarg) < 0 || atoi(optarg) > 1) {
-                usage(argv[0]);
-                return 1;
-            }
-
-            uvc_io_method = atoi(optarg);
-            printf("UVC: IO method requested is %s\n", (uvc_io_method == IO_METHOD_MMAP) ? "MMAP" : "USER_PTR");
-            break;
-
-        case 'r':
-            if (atoi(optarg) < 0 || atoi(optarg) > 1) {
-                usage(argv[0]);
-                return 1;
-            }
-
-            default_resolution = atoi(optarg);
-            break;
-
-        case 's':
-            if (atoi(optarg) < 0 || atoi(optarg) > 2) {
-                usage(argv[0]);
-                return 1;
-            }
-
-            speed = atoi(optarg);
-            break;
-
-        case 't':
-            if (atoi(optarg) < 0 || atoi(optarg) > 15) {
-                usage(argv[0]);
-                return 1;
-            }
-
-            burst = atoi(optarg);
-            printf("Requested Burst value = %d\n", burst);
-            break;
-
-        case 'u':
-            uvc_devname = optarg;
-            break;
-
-        case 'v':
-            v4l2_devname = optarg;
-            break;
-
-        default:
-            printf("Invalid option '-%c'\n", opt);
-            usage(argv[0]);
-            return 1;
         }
     }
 
@@ -418,7 +412,7 @@ int main(int argc, char *argv[])
     udev->imgsize = (default_format == 0) ? (udev->width * udev->height * 2) : (udev->width * udev->height * 1.5);
     udev->fcc = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
     udev->io = uvc_io_method;
-    udev->bulk = bulk_mode;
+    udev->bulk = 0;
     udev->nbufs = nbufs;
     udev->mult = mult;
     udev->burst = burst;
@@ -446,28 +440,16 @@ int main(int argc, char *argv[])
     switch (speed) {
     case USB_SPEED_FULL:
         /* Full Speed. */
-        if (bulk_mode)
-            udev->maxpkt = 64;
-        else
-            udev->maxpkt = 1023;
-        break;
+        udev->maxpkt = 1023;
 
     case USB_SPEED_HIGH:
         /* High Speed. */
-        if (bulk_mode)
-            udev->maxpkt = 512;
-        else
-            udev->maxpkt = 1024;
-        break;
+        udev->maxpkt = 1024;
 
     case USB_SPEED_SUPER:
     default:
         /* Super Speed. */
-        if (bulk_mode)
-            udev->maxpkt = 1024;
-        else
-            udev->maxpkt = 1024;
-        break;
+        udev->maxpkt = 1024;
     }
 
     if (IO_METHOD_MMAP == vdev->io) {
