@@ -217,36 +217,9 @@ static int v4l2_process_data(struct v4l2_device *dev)
     return 0;
 }
 
-
 /* ---------------------------------------------------------------------------
  * main
  */
-
-static void image_load(struct uvc_device *dev, const char *img)
-{
-    int fd = -1;
-
-    if (img == NULL)
-        return;
-
-    fd = open(img, O_RDONLY);
-    if (fd == -1) {
-        printf("Unable to open MJPEG image '%s'\n", img);
-        return;
-    }
-
-    dev->imgsize = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
-    dev->imgdata = malloc(dev->imgsize);
-    if (dev->imgdata == NULL) {
-        printf("Unable to allocate memory for MJPEG image\n");
-        dev->imgsize = 0;
-        return;
-    }
-
-    read(fd, dev->imgdata, dev->imgsize);
-    close(fd);
-}
 
 static void usage(const char *argv0)
 {
@@ -259,7 +232,6 @@ static void usage(const char *argv0)
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
     fprintf(stderr, " -h		Print this help screen and exit\n");
-    fprintf(stderr, " -i image	MJPEG image\n");
     fprintf(stderr, " -m		Streaming mult for ISOC (b/w 0 and 2)\n");
     fprintf(stderr, " -n		Number of Video buffers (b/w 2 and 32)\n");
     fprintf(stderr,
@@ -288,7 +260,6 @@ int main(int argc, char *argv[])
     struct v4l2_format fmt;
     char *uvc_devname = "/dev/video0";
     char *v4l2_devname = "/dev/video1";
-    char *mjpeg_image = NULL;
 
     fd_set fdsv, fdsu;
     int ret, opt, nfds;
@@ -304,7 +275,7 @@ int main(int argc, char *argv[])
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "bdf:hi:m:n:o:r:s:t:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "bdf:hm:n:o:r:s:t:u:v:")) != -1) {
         switch (opt) {
         case 'b':
             bulk_mode = 1;
@@ -326,10 +297,6 @@ int main(int argc, char *argv[])
         case 'h':
             usage(argv[0]);
             return 1;
-
-        case 'i':
-            mjpeg_image = optarg;
-            break;
 
         case 'm':
             if (atoi(optarg) < 0 || atoi(optarg) > 2) {
@@ -404,7 +371,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!dummy_data_gen_mode && !mjpeg_image) {
+    if (!dummy_data_gen_mode) {
         /*
          * Try to set the default format at the V4L2 video capture
          * device as requested by the user.
@@ -432,7 +399,7 @@ int main(int argc, char *argv[])
 
     udev->uvc_devname = uvc_devname;
 
-    if (!dummy_data_gen_mode && !mjpeg_image) {
+    if (!dummy_data_gen_mode) {
         vdev->v4l2_devname = v4l2_devname;
         /* Bind UVC and V4L2 devices. */
         udev->vdev = vdev;
@@ -451,11 +418,11 @@ int main(int argc, char *argv[])
     udev->burst = burst;
     udev->speed = speed;
 
-    if (dummy_data_gen_mode || mjpeg_image)
+    if (dummy_data_gen_mode)
         /* UVC standalone setup. */
         udev->run_standalone = 1;
 
-    if (!dummy_data_gen_mode && !mjpeg_image) {
+    if (!dummy_data_gen_mode) {
         /* UVC - V4L2 integrated path */
         vdev->nbufs = nbufs;
 
@@ -502,7 +469,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (!dummy_data_gen_mode && !mjpeg_image && (IO_METHOD_MMAP == vdev->io)) {
+    if (!dummy_data_gen_mode && (IO_METHOD_MMAP == vdev->io)) {
         /*
          * Ensure that the V4L2 video capture device has already some
          * buffers queued.
@@ -510,14 +477,11 @@ int main(int argc, char *argv[])
         v4l2_reqbufs(vdev, vdev->nbufs);
     }
 
-    if (mjpeg_image)
-        image_load(udev, mjpeg_image);
-
     /* Init UVC events. */
     uvc_events_init(udev);
 
     while (1) {
-        if (!dummy_data_gen_mode && !mjpeg_image)
+        if (!dummy_data_gen_mode)
             FD_ZERO(&fdsv);
 
         FD_ZERO(&fdsu);
@@ -529,14 +493,14 @@ int main(int argc, char *argv[])
         fd_set dfds = fdsu;
 
         /* ..but only data events on V4L2 interface */
-        if (!dummy_data_gen_mode && !mjpeg_image)
+        if (!dummy_data_gen_mode)
             FD_SET(vdev->v4l2_fd, &fdsv);
 
         /* Timeout. */
         tv.tv_sec = 2;
         tv.tv_usec = 0;
 
-        if (!dummy_data_gen_mode && !mjpeg_image) {
+        if (!dummy_data_gen_mode) {
             nfds = max(vdev->v4l2_fd, udev->uvc_fd);
             ret = select(nfds + 1, &fdsv, &dfds, &efds, &tv);
         } else {
@@ -560,12 +524,12 @@ int main(int argc, char *argv[])
             uvc_events_process(udev);
         if (FD_ISSET(udev->uvc_fd, &dfds))
             uvc_video_process(udev);
-        if (!dummy_data_gen_mode && !mjpeg_image)
+        if (!dummy_data_gen_mode)
             if (FD_ISSET(vdev->v4l2_fd, &fdsv))
                 v4l2_process_data(vdev);
     }
 
-    if (!dummy_data_gen_mode && !mjpeg_image && vdev->is_streaming) {
+    if (!dummy_data_gen_mode && vdev->is_streaming) {
         /* Stop V4L2 streaming... */
         v4l2_stop_capturing(vdev);
         v4l2_uninit_device(vdev);
@@ -581,7 +545,7 @@ int main(int argc, char *argv[])
         udev->is_streaming = 0;
     }
 
-    if (!dummy_data_gen_mode && !mjpeg_image)
+    if (!dummy_data_gen_mode)
         v4l2_close(vdev);
 
     uvc_close(udev);
