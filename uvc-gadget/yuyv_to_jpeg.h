@@ -6,7 +6,6 @@ uint32_t yuyv_to_jpeg(const uint8_t* input, const int width, const int height, u
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
-    // uint8_t* outbuffer = NULL;
     uint32_t outlen = 0;
 
     cinfo.err = jpeg_std_error(&jerr);
@@ -30,7 +29,8 @@ uint32_t yuyv_to_jpeg(const uint8_t* input, const int width, const int height, u
     while (cinfo.next_scanline < cinfo.image_height) {
         unsigned i, j;
         unsigned offset = cinfo.next_scanline * cinfo.image_width * 2; //offset to the correct row
-        for (i = 0, j = 0; i < cinfo.image_width * 2; i += 4, j += 6) { //input strides by 4 bytes, output strides by 6 (2 pixels)
+        for (i = 0, j = 0; i < cinfo.image_width * 2; i += 4, j += 6) { 
+            // input strides by 4 bytes, output strides by 6 (2 pixels)
             tmprowbuf[j + 0] = input[offset + i + 0]; // Y (unique to this pixel)
             tmprowbuf[j + 1] = input[offset + i + 1]; // U (shared between pixels)
             tmprowbuf[j + 2] = input[offset + i + 3]; // V (shared between pixels)

@@ -6,7 +6,6 @@ uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, u
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
-    // uint8_t* outbuffer = NULL;
     uint32_t outlen = 0;
 
     cinfo.err = jpeg_std_error(&jerr);
@@ -27,12 +26,17 @@ uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, u
 
     JSAMPROW row_pointer[1];
     row_pointer[0] = &tmprowbuf[0];
+
+    int u_offset = cinfo.image_width * cinfo.image_height;
+    int v_offset = (cinfo.image_width / 2) * (cinfo.image_height / 2);
+
     while (cinfo.next_scanline < cinfo.image_height) {
         unsigned i, j;
-        for (i = 0, j = 0; i < cinfo.image_width; i += 1, j += 3) { //input strides by 4 bytes, output strides by 6 (2 pixels)
-            tmprowbuf[j + 0] = input[i + cinfo.image_width * cinfo.next_scanline]; // Y (unique to this pixel)
-            tmprowbuf[j + 1] = input[i / 2 + cinfo.image_width * cinfo.image_height + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)]; // U (shared between pixels)
-            tmprowbuf[j + 2] = input[i / 2 + cinfo.image_width * cinfo.image_height + (cinfo.image_width / 2) * (cinfo.image_height / 2) + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)]; // V (shared between pixels)
+        for (i = 0, j = 0; i < cinfo.image_width; i += 1, j += 3) { 
+            // input strides by 1 bytes, output strides by 3 (2 pixels)
+            tmprowbuf[j + 0] = input[i + cinfo.image_width * cinfo.next_scanline];
+            tmprowbuf[j + 1] = input[i / 2 + u_offset + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)];
+            tmprowbuf[j + 2] = input[i / 2 + u_offset + (cinfo.image_width / 2) * (cinfo.next_scanline / 2)];
         }
         jpeg_write_scanlines(&cinfo, row_pointer, 1);
     }
