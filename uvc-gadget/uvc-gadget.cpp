@@ -95,6 +95,11 @@ static int v4l2_process_data(struct v4l2_device *dev)
             printf("Error decoding");
         }
 
+        // You may apply OpenCV image processing here
+        // Begin OpenCV
+        // ...........
+        // End   OpenCV
+
         // Encode JPEG
         std::vector<uchar> outbuffer;
         cv::imencode(".jpg", out_img, outbuffer);
@@ -116,6 +121,11 @@ static int v4l2_process_data(struct v4l2_device *dev)
         cv::Mat img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
         cv::Mat out_img;
         cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+
+        // You may apply OpenCV image processing here
+        // Begin OpenCV
+        // ...........
+        // End   OpenCV
 
         // RGB to YV12
         cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
