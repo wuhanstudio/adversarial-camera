@@ -203,9 +203,9 @@ static void usage(const char *argv0)
             " -f <format>    Select frame format\n\t"
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
-    fprintf(stderr, " -h		Print this help screen and exit\n");
-    fprintf(stderr, " -m		Streaming mult for ISOC (b/w 0 and 2)\n");
-    fprintf(stderr, " -n		Number of Video buffers (b/w 2 and 32)\n");
+    fprintf(stderr, " -h	Print this help screen and exit\n");
+    fprintf(stderr, " -m	Streaming mult for ISOC (b/w 0 and 2)\n");
+    fprintf(stderr, " -n	Number of Video buffers (b/w 2 and 32)\n");
     fprintf(stderr,
             " -o <IO method> Select UVC IO method:\n\t"
             "0 = MMAP\n\t"
@@ -219,7 +219,6 @@ static void usage(const char *argv0)
             "0 = Full Speed (FS)\n\t"
             "1 = High Speed (HS)\n\t"
             "2 = Super Speed (SS)\n");
-    fprintf(stderr, " -t		Streaming burst (b/w 0 and 15)\n");
     fprintf(stderr, " -u device	UVC Video Output device\n");
     fprintf(stderr, " -v device	V4L2 Video Capture device\n");
 }
@@ -244,7 +243,7 @@ int main(int argc, char *argv[])
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "f:hm:n:o:r:s:t:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:hm:n:o:r:s:u:v:")) != -1) {
         switch (opt) {
             case 'f':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -307,16 +306,6 @@ int main(int argc, char *argv[])
                 speed = atoi(optarg);
                 break;
 
-            case 't':
-                if (atoi(optarg) < 0 || atoi(optarg) > 15) {
-                    usage(argv[0]);
-                    return 1;
-                }
-
-                burst = atoi(optarg);
-                printf("Requested Burst value = %d\n", burst);
-                break;
-
             case 'u':
                 uvc_devname = optarg;
                 break;
@@ -375,14 +364,13 @@ int main(int argc, char *argv[])
     udev->burst = burst;
     udev->speed = speed;
 
-
     /* UVC - V4L2 integrated path */
     vdev->nbufs = nbufs;
 
     /*
-        * IO methods used at UVC and V4L2 domains must be
-        * complementary to avoid any memcpy from the CPU.
-        */
+     * IO methods used at UVC and V4L2 domains must be
+     * complementary to avoid any memcpy from the CPU.
+    */
     switch (uvc_io_method) {
     case IO_METHOD_MMAP:
         vdev->io = IO_METHOD_USERPTR;
