@@ -2,18 +2,18 @@ CROSS_COMPILE	?=
 ARCH			?= x86
 KERNEL_DIR		?= /usr/src/linux
 
-CC				:= $(CROSS_COMPILE)g++
-CFLAGS			:= -W -Wall -g $(KERNEL_INCLUDE) -fpermissive
+CXX				:= $(CROSS_COMPILE)g++
+CXXFLAGS		:= -fpermissive -Wno-write-strings -g $(KERNEL_INCLUDE)
 LDFLAGS			:= -g
 KERNEL_INCLUDE	:= -I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/arch/$(ARCH)/include
 
 all: uvc-gadget
 
-uvc-gadget.o: uvc-gadget.cpp
-	$(CC) $(CFLAGS) -c $^
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 uvc-gadget: uvc-gadget.o
-	$(CC) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv libjpeg`
+	$(CXX) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv libjpeg`
 
 clean:
 	rm -f *.o
