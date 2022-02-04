@@ -203,7 +203,6 @@ static void usage(const char *argv0)
             " -f <format>    Select frame format\n\t"
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
-    fprintf(stderr, " -h	Print this help screen and exit\n");
     fprintf(stderr,
             " -o <IO method> Select UVC IO method:\n\t"
             "0 = MMAP\n\t"
@@ -212,13 +211,9 @@ static void usage(const char *argv0)
             " -r <resolution> Select frame resolution:\n\t"
             "0 = 360p, VGA (640x360)\n\t"
             "1 = 720p, HD (1280x720)\n");
-    fprintf(stderr,
-            " -s <speed>	Select USB bus speed (b/w 0 and 2)\n\t"
-            "0 = Full Speed (FS)\n\t"
-            "1 = High Speed (HS)\n\t"
-            "2 = Super Speed (SS)\n");
     fprintf(stderr, " -u device	UVC Video Output device\n");
     fprintf(stderr, " -v device	V4L2 Video Capture device\n");
+    fprintf(stderr, " -h Print this help screen and exit\n");
 }
 
 int main(int argc, char *argv[])
@@ -239,9 +234,10 @@ int main(int argc, char *argv[])
     int mult = 0;
     int burst = 0;
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
+
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "f:hn:o:r:s:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:o:r:u:v:h")) != -1) {
         switch (opt) {
             case 'f':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -251,10 +247,6 @@ int main(int argc, char *argv[])
 
                 default_format = atoi(optarg);
                 break;
-
-            case 'h':
-                usage(argv[0]);
-                return 1;
 
             case 'o':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -275,15 +267,6 @@ int main(int argc, char *argv[])
                 default_resolution = atoi(optarg);
                 break;
 
-            case 's':
-                if (atoi(optarg) < 0 || atoi(optarg) > 2) {
-                    usage(argv[0]);
-                    return 1;
-                }
-
-                speed = atoi(optarg);
-                break;
-
             case 'u':
                 uvc_devname = optarg;
                 break;
@@ -291,6 +274,10 @@ int main(int argc, char *argv[])
             case 'v':
                 v4l2_devname = optarg;
                 break;
+
+            case 'h':
+                usage(argv[0]);
+                return 1;
 
             default:
                 printf("Invalid option '-%c'\n", opt);
@@ -350,30 +337,17 @@ int main(int argc, char *argv[])
      * complementary to avoid any memcpy from the CPU.
     */
     switch (uvc_io_method) {
-    case IO_METHOD_MMAP:
-        vdev->io = IO_METHOD_USERPTR;
-        break;
+        case IO_METHOD_MMAP:
+            vdev->io = IO_METHOD_USERPTR;
+            break;
 
-    case IO_METHOD_USERPTR:
-    default:
-        vdev->io = IO_METHOD_MMAP;
-        break;
+        case IO_METHOD_USERPTR:
+        default:
+            vdev->io = IO_METHOD_MMAP;
+            break;
     }
 
-    switch (speed) {
-    case USB_SPEED_FULL:
-        /* Full Speed. */
-        udev->maxpkt = 1023;
-
-    case USB_SPEED_HIGH:
-        /* High Speed. */
-        udev->maxpkt = 1024;
-
-    case USB_SPEED_SUPER:
-    default:
-        /* Super Speed. */
-        udev->maxpkt = 1024;
-    }
+    udev->maxpkt = 1024;
 
     if (IO_METHOD_MMAP == vdev->io) {
         /*
