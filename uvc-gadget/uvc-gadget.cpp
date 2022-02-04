@@ -191,10 +191,6 @@ static int v4l2_process_data(struct v4l2_device *dev)
     return 0;
 }
 
-/* ---------------------------------------------------------------------------
- * main
- */
-
 static void usage(const char *argv0)
 {
     fprintf(stderr, "Usage: %s [options]\n", argv0);
@@ -224,7 +220,8 @@ int main(int argc, char *argv[])
     fd_set fdsv, fdsu;
     int ret, opt, nfds;
 
-    int nbufs = 2;              /* Ping-Pong buffers */
+    /* Ping-Pong buffers */
+    int nbufs = 2;
 
     /* USB speed related params */
     int mult = 0;
@@ -296,10 +293,9 @@ int main(int argc, char *argv[])
     if (udev == NULL || ret < 0)
         return 1;
 
-    udev->uvc_devname = uvc_devname;
-
-    vdev->v4l2_devname = v4l2_devname;
     /* Bind UVC and V4L2 devices. */
+    udev->uvc_devname = uvc_devname;
+    vdev->v4l2_devname = v4l2_devname;
     udev->vdev = vdev;
     vdev->udev = udev;
 
@@ -404,7 +400,7 @@ int main(int argc, char *argv[])
     }
 
     v4l2_close(vdev);
-
     uvc_close(udev);
+
     return 0;
 }
