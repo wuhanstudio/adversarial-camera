@@ -204,7 +204,7 @@ static void usage(const char *argv0)
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
     fprintf(stderr, " -h	Print this help screen and exit\n");
-    fprintf(stderr, " -m	Streaming mult for ISOC (b/w 0 and 2)\n");
+    fprintf(stderr, " -m	Streamin for ISOC (b/w 0 and 2)\n");
     fprintf(stderr, " -n	Number of Video buffers (b/w 2 and 32)\n");
     fprintf(stderr,
             " -o <IO method> Select UVC IO method:\n\t"
@@ -213,7 +213,7 @@ static void usage(const char *argv0)
     fprintf(stderr,
             " -r <resolution> Select frame resolution:\n\t"
             "0 = 360p, VGA (640x360)\n\t"
-            "1 = 720p, (1280x720)\n");
+            "1 = 720p, HD (1280x720)\n");
     fprintf(stderr,
             " -s <speed>	Select USB bus speed (b/w 0 and 2)\n\t"
             "0 = Full Speed (FS)\n\t"
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
     enum usb_device_speed speed = USB_SPEED_SUPER; /* High-Speed */
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "f:hm:n:o:r:s:u:v:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:hn:o:r:s:u:v:")) != -1) {
         switch (opt) {
             case 'f':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -257,16 +257,6 @@ int main(int argc, char *argv[])
             case 'h':
                 usage(argv[0]);
                 return 1;
-
-            case 'm':
-                if (atoi(optarg) < 0 || atoi(optarg) > 2) {
-                    usage(argv[0]);
-                    return 1;
-                }
-
-                mult = atoi(optarg);
-                printf("Requested Mult value = %d\n", mult);
-                break;
 
             case 'n':
                 if (atoi(optarg) < 2 || atoi(optarg) > 32) {
