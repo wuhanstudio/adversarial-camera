@@ -39,6 +39,10 @@
 #define IMAGE_WIDTH_720P	1280
 #define IMAGE_HEIGHT_720P   720
 
+/* Frame format/resolution related params. */
+int default_format = 0;         /* V4L2_PIX_FMT_YUYV */
+int default_resolution = 0;     /* VGA 360p */
+
 static int v4l2_process_data(struct v4l2_device *dev)
 {
     int ret;
@@ -79,107 +83,61 @@ static int v4l2_process_data(struct v4l2_device *dev)
     printf("Dequeueing buffer at V4L2 side = %d\n", vbuf.index);
 #endif
 
+    int width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
+    int height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
+
     // MJPEG --> MJPEG
-    if(1) {
+    if(default_format == 1) {
+        // Decode JPEG
+        cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+        if ( out_img.data == NULL )   
+        {
+            printf("Error decoding");
+        }
 
-    // Decode JPEG
-    cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(1280, 720), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
-    if ( out_img.data == NULL )   
-    {
-        printf("Error decoding");
-        // Error reading raw image data
+        // Encode JPEG
+        std::vector<uchar> outbuffer;
+        cv::imencode(".jpg", out_img, outbuffer);
+
+        uint32_t outlen = sizeof(uchar) * outbuffer.size();
+        vbuf.length = outlen;
+        vbuf.bytesused = outlen;
+        memcpy(dev->mem[vbuf.index].start, outbuffer.data(), outlen);
     }
-
-    // RGB to YV12
-    // cv::Mat img;
-    // cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
-
-    // imshow("view", img);
-    // cv::waitKey(1);
-
-    // YV12 to JPEG
-    // uint8_t* outbuffer = NULL;
-    // cv::Mat input = img.reshape(1, img.total()*img.channels());
-    // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    // uint64_t outlen = compressYV12toJPEG(vec.data(), 1280, 720, outbuffer);
-
-    // memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
-    // vbuf.length = outlen;
-    // vbuf.bytesused = outlen;
-
-    // Encode JPEG
-    std::vector<uchar> outbuffer;
-    cv::imencode(".jpg", out_img, outbuffer);
-
-    uint32_t outlen = sizeof(uchar) * outbuffer.size();
-    memcpy(dev->mem[vbuf.index].start, outbuffer.data(), outlen);
-    vbuf.length = outlen;
-    vbuf.bytesused = outlen;
-
-    printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
-    
-    }
-
     // YUYV --> MJPEG
-    if(0) 
-    {
+    else {
+        // YUYV to JPEG
+        // uint8_t* outbuffer = NULL;
+        // cv::Mat input = img.reshape(1, img.total()*img.channels());
+        // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
+        // uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
 
-    // Decode YUYV
-    cv::Mat img = cv::Mat(cv::Size(640, 360), CV_8UC2, dev->mem[vbuf.index].start);
-    cv::Mat out_img;
-    cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+        // YUYV to RGB
+        cv::Mat img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
+        cv::Mat out_img;
+        cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
-    // imshow("view", out_img.clone());
-    // cv::waitKey(1);
+        // RGB to YV12
+        cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
 
-    // You may do image processing here
-    // OpenCV Code
-    // int ch = (rand() % 5);
-    // int ch2 = (rand() % 50);
-    // if(ch == 0 && count <= 0){ 
-    //     cv::putText(out_img, "Hi, there", cv::Point2f(50, 100), cv::FONT_HERSHEY_SIMPLEX, 3, cv::Scalar(255, 0, 0), 2, cv::LINE_AA); 
-    // }
+        // YV12 to JPEG
+        uint8_t* outbuffer = NULL;
+        cv::Mat input = img.reshape(1, img.total()*img.channels());
+        std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
+        uint32_t outlen = yv12_to_jpeg(vec.data(), width, height, outbuffer);
 
-    // if(ch2 == 5){
-	//     count = 10;
-    // }
-    // if (count > 0) {
-    //     cv::addWeighted(water_mark, 0.5, out_img.clone() , 0.5, 0, out_img);
-    //     count--;
-    // }
+        // Copy to UVC device
+        // dev->mem[vbuf.index].length = outlen; THIS CANNOT BE SET, CAUSES ERROR
 
-    // RGB to YV12
-    cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
+        vbuf.length = outlen;
+        vbuf.bytesused = outlen;
+        memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
 
-    // YV12 to JPEG
-    uint8_t* outbuffer = NULL;
-    cv::Mat input = img.reshape(1, img.total()*img.channels());
-    std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    uint32_t outlen = yv12_to_jpeg(vec.data(), 640, 360, outbuffer);
-
-    // YUYV to JPEG
-    // uint8_t* outbuffer = NULL;
-    // cv::Mat input = img.reshape(1, img.total()*img.channels());
-    // std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
-    // uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
-
-
-    // printf("libjpeg produced %d bytes\n", outlen);
-
-    // Copy to UVC device
-    memcpy(dev->mem[vbuf.index].start, outbuffer, outlen);
-    vbuf.length = outlen;
-    vbuf.bytesused = outlen;
-
-    // dev->mem[vbuf.index].length = outlen; THIS CANNOT BE SET, CAUSES ERROR
-
-    // printf("vdev length %d, index %d, bytesused %d bytes\n", vbuf.length, vbuf.index, vbuf.bytesused);
-
-    // Write JPEG to file 
-    // std::vector<uint8_t> output = std::vector<uint8_t>(outbuffer, outbuffer + outlen);
-    // std::ofstream ofs("output.jpg", std::ios_base::binary);
-    // ofs.write((const char*) &output[0], output.size());
-    // ofs.close();
+        // Write JPEG to file 
+        // std::vector<uint8_t> output = std::vector<uint8_t>(outbuffer, outbuffer + outlen);
+        // std::ofstream ofs("output.jpg", std::ios_base::binary);
+        // ofs.write((const char*) &output[0], output.size());
+        // ofs.close();
     }
 
     /* Queue video buffer to UVC domain. */
@@ -277,10 +235,9 @@ int main(int argc, char *argv[])
 
     fd_set fdsv, fdsu;
     int ret, opt, nfds;
-    /* Frame format/resolution related params. */
-    int default_format = 0;     /* V4L2_PIX_FMT_YUYV */
-    int default_resolution = 0; /* VGA HEIGHT1p */
+
     int nbufs = 2;              /* Ping-Pong buffers */
+
     /* USB speed related params */
     int mult = 0;
     int burst = 0;
@@ -376,9 +333,9 @@ int main(int argc, char *argv[])
     }
 
     /*
-        * Try to set the default format at the V4L2 video capture
-        * device as requested by the user.
-        */
+     * Try to set the default format at the V4L2 video capture
+     * device as requested by the user.
+    */
     CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     fmt.fmt.pix.width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
