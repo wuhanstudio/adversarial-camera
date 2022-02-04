@@ -17,11 +17,16 @@ And add an extra line at the end of `/boot/config.txt`
 dtoverlay=dwc2
 ```
 
-We also need to enable the v4l2loopback kernel module for a v4l2 dummy device by adding this to `/etc/modules`:
+Enable the configfs kernel module by adding this to `/etc/modules`:
 
 ```
-v4l2loopback
 libcomposite
+```
+
+We also need to enable the v4l2loopback kernel module for a v4l2 dummy device for testing purpose:
+
+```
+# sudo modprobe v4l2loopback devices=2 video_nr="40" max_buffers="8" exclusive_caps="1"
 ```
 
 Now you are ready to use this project:
@@ -31,23 +36,20 @@ Now you are ready to use this project:
 $ git clone https://github.com/wuhanstudio/adversarial-camera & cd adversarial-camera
 $ sudo cp piwebcam.service /etc/systemd/system/
 $ sudo systemctl enable piwebcam
-$ cd src && make
+$ cd uvc-gadget && make
 ```
 
 ```
-# gst-launch-1.0 videotestsrc ! v4l2sink device=/dev/video0
-# sudo ffmpeg -f v4l2 -input_format yuyv422 -i /dev/video40  -c:v mjpeg  -f mjpeg - > /dev/video42
+# gst-launch-1.0 videotestsrc ! v4l2sink device=/dev/video40
 # gst-launch-1.0 videotestsrc ! "video/x-raw, width=640, height=360, fps=30/1" ! avenc_mjpeg !  v4l2sink device=/dev/video42
 ```
-
-
 
 If everything works fine, after rebooting you should see:
 
 ```
 pi@raspberrypi:~ $ v4l2-ctl --list-device
 fe980000.usb (gadget):
-        /dev/video1
+        /dev/video0
 
 bcm2835-codec-decode (platform:bcm2835-codec):
         /dev/video10
@@ -61,15 +63,19 @@ bcm2835-isp (platform:bcm2835-isp):
         /dev/video15
         /dev/video16
 
+USB2.0 PC CAMERA: USB2.0 PC CAM (usb-0000:01:00.0-1.4):
+        /dev/video1
+        /dev/video2
+
 Dummy video device (0x0000) (platform:v4l2loopback-000):
-        /dev/video0
+        /dev/video40
 ```
 
 Now you can fake a USB camera:
 
 ```
 $ ./start.sh
-$ sudo ./src/uvc-gadget -f 0 -r 1 -u /dev/video1 -v /dev/video0
+$ sudo ./src/uvc-gadget -f 0 -r 1 -u /dev/video0 -v /dev/video1
 ```
 
 ## uvc-gadget
@@ -90,28 +96,15 @@ and Robert Baldyga's patchset
     Usage: ./uvc-gadget [options]
     
     Available options are
-        -b             Use bulk mode
-        -d             Do not use any real V4L2 capture device
-        -f <format>    Select frame format
+        -f <format> Select frame format
                 0 = V4L2_PIX_FMT_YUYV
                 1 = V4L2_PIX_FMT_MJPEG
-        -h             Print this help screen and exit
-        -i image       MJPEG image
-        -m             Streaming mult for ISOC (b/w 0 and 2)
-        -n             Number of Video buffers (b/w 2 and 32)
-        -o <IO method> Select UVC IO method:
-                0 = MMAP
-                1 = USER_PTR
         -r <resolution> Select frame resolution:
                 0 = 360p, VGA (640x360)
                 1 = 720p, WXGA (1280x720)
-        -s <speed>     Select USB bus speed (b/w 0 and 2)
-                0 = Full Speed (FS)
-                1 = High Speed (HS)
-                2 = Super Speed (SS)
-        -t             Streaming burst (b/w 0 and 15)
         -u device      UVC Video Output device
         -v device      V4L2 Video Capture device
+        -h help        Print this help screen and exit
 
 ## Change log
 

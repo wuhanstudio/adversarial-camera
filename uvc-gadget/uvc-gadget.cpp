@@ -196,7 +196,7 @@ static void usage(const char *argv0)
     fprintf(stderr, "Usage: %s [options]\n", argv0);
     fprintf(stderr, "Available options are\n");
     fprintf(stderr,
-            " -f <format>    Select frame format\n\t"
+            " -f <format> Select frame format\n\t"
             "0 = V4L2_PIX_FMT_YUYV\n\t"
             "1 = V4L2_PIX_FMT_MJPEG\n");
     fprintf(stderr,
@@ -205,7 +205,7 @@ static void usage(const char *argv0)
             "1 = 720p, HD (1280x720)\n");
     fprintf(stderr, " -u device	UVC Video Output device\n");
     fprintf(stderr, " -v device	V4L2 Video Capture device\n");
-    fprintf(stderr, " -h Print this help screen and exit\n");
+    fprintf(stderr, " -h help	Print this help screen and exit\n");
 }
 
 int main(int argc, char *argv[])
