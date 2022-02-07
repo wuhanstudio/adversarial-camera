@@ -3,7 +3,7 @@ ARCH			?= x86
 KERNEL_DIR		?= /usr/src/linux
 
 CXX				:= $(CROSS_COMPILE)g++
-CXXFLAGS		:= -fpermissive -Wno-write-strings -g $(KERNEL_INCLUDE)
+CXXFLAGS		:= -fpermissive -Wno-write-strings -Ofast $(KERNEL_INCLUDE) #-std=c++11
 LDFLAGS			:= -g
 KERNEL_INCLUDE	:= -I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/arch/$(ARCH)/include
 
