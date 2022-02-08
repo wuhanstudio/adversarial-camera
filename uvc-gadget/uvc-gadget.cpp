@@ -41,6 +41,17 @@
 #define IMAGE_WIDTH_720P    1280
 #define IMAGE_HEIGHT_720P   720
 
+double clockToMilliseconds(clock_t ticks){
+    // units/(units/time) => time (seconds) * 1000 = milliseconds
+    return (ticks/(double)CLOCKS_PER_SEC)*1000.0;
+}
+
+clock_t deltaTime = 0;
+unsigned int frames = 0;
+double  frameRate = 30;
+double  averageFrameTimeMilliseconds = 33.333;
+
+
 /* Frame format/resolution related params. */
 int default_format = 0;         /* V4L2_PIX_FMT_YUYV */
 int default_resolution = 0;     /* VGA 360p */
@@ -49,7 +60,6 @@ int* d;
 std::vector<unsigned long> shape;
 bool fortran_order;
 std::vector<double> data;
-cv::Mat M, N;
 
 static int v4l2_process_data(struct v4l2_device *dev)
 {
@@ -106,44 +116,85 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // You may apply OpenCV image processing here
         // Begin OpenCV
         // ...........
-        cv::cvtColor(out_img, out_img, cv::COLOR_BGR2RGB);
-	// out_img = out_img + N;
-	// N = N.t();
+        // cv::cvtColor(out_img, out_img, cv::COLOR_BGR2RGB);
 	
+        clock_t beginFrame = clock();
+	
+
 	for(int i = 0; i < out_img.rows; i++) {
             for(int j = 0; j < out_img.cols; j++) {
                 // get pixel
-                cv::Vec3b color = out_img.at<cv::Vec3b>(i, j);
+                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
 		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
-		// cv::Vec<int, 3> color1 = N.at<cv::Vec<int, 3>>(cv::Point(i, j));
+		uint8_t temp; 
 
-		if ((color1[0] + color1[1] + color1[2]) != 0)
-                {
-                    for (size_t k = 0; k < 3; k++)
-                    {
-                        if (color1[k] < 0) {
-                            if (int(color[k]) <= int((-color1[k])))
-                                color[k] = 0;
-                            else
-                                color[k] += color1[k];
-                        }
-                        else {
-                            if ( (255 - color[k]) <= color1[k])
-                                color[k] = 255;
-                            else
-                                color[k] += color1[k];
-                        }
-                    }
+		temp = color[0];
+                color[0] += color1[2];
+                if ((color1[2] < 0) && (color[0] > temp))
+		    color[0] = 0;
+                if ((color1[2] > 0) && (color[0] < temp))
+		    color[0] = 255;
 
-                    // set pixel
-                    color = cv::Vec<uchar, 3>(color);  
-                    out_img.at<cv::Vec3b>(i, j) = color;
-		}
+		temp = color[1];
+                color[1] += color1[1];
+                if ((color1[1] < 0) && (color[1] > temp))
+		    color[1] = 0;
+                if ((color1[1] > 0) && (color[1] < temp))
+		    color[1] = 255;
+
+		temp = color[2];
+                color[2] += color1[0];
+                if ((color1[0] < 0) && (color[2] > temp))
+		    color[2] = 0;
+                if ((color1[0] > 0) && (color[2] < temp))
+		    color[2] = 255;
             }
         }
-	// std::cout << "frame" << std::endl;
-        cv::cvtColor(out_img, out_img, cv::COLOR_RGB2BGR);
+	
+	/*
+	for(int i = 0; i < out_img.rows; i++) {
+            for(int j = 0; j < out_img.cols; j++) {
+                // get pixel
+                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
+                int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
+
+                for (size_t k = 0; k < 3; k++)
+                {
+                    if (color1[k] < 0) {
+                        if (int(color[2-k]) <= int((-color1[k])))
+                            color[2-k] = 0;
+                        else
+                            color[2-k] += color1[k];
+                    }
+                    else {
+                        if ( (255 - color[2-k]) <= color1[k])
+                            color[2-k] = 255;
+                        else
+                            color[2-k] += color1[k];
+                    }
+                }
+            }
+        }
+	*/
+
+        // cv::cvtColor(out_img, out_img, cv::COLOR_RGB2BGR);
         // End   OpenCV
+	
+	clock_t endFrame = clock();
+
+        deltaTime += endFrame - beginFrame;
+        frames ++;
+
+        // if you really want FPS
+        if( clockToMilliseconds(deltaTime)>1000.0) {
+            // every second
+            frameRate = (double)frames*0.5 + frameRate*0.5; //more stable
+            frames = 0;
+            deltaTime -= CLOCKS_PER_SEC;
+            averageFrameTimeMilliseconds  = 1000.0/(frameRate==0?0.001:frameRate);
+
+            std::cout<<"CPU time was:"<<averageFrameTimeMilliseconds<<std::endl;
+        }
 
         // Encode JPEG
         std::vector<uchar> outbuffer;
@@ -170,6 +221,45 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // You may apply OpenCV image processing here
         // Begin OpenCV
         // ...........
+        for(int i = 0; i < out_img.rows; i++) {
+            for(int j = 0; j < out_img.cols; j++) {
+                // get pixel
+                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
+		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
+		// cv::Vec<int, 3> color1 = N.at<cv::Vec<int, 3>>(cv::Point(i, j));
+
+		// if ((color1[0] + color1[1] + color1[2]) != 0)
+                // {
+			uint8_t temp; 
+
+			temp = color[0];
+                        color[0] += color1[2];
+                        if ((color1[2] < 0) && (color[0] > temp))
+		            color[0] = 0;
+                        if ((color1[2] > 0) && (color[0] < temp))
+		            color[0] = 255;
+
+			temp = color[1];
+                        color[1] += color1[1];
+                        if ((color1[1] < 0) && (color[1] > temp))
+		            color[1] = 0;
+                        if ((color1[1] > 0) && (color[1] < temp))
+		            color[1] = 255;
+
+			temp = color[2];
+                        color[2] += color1[0];
+                        if ((color1[0] < 0) && (color[2] > temp))
+		            color[2] = 0;
+                        if ((color1[0] > 0) && (color[2] < temp))
+		            color[2] = 255;
+
+                    // set pixel
+                    // color = cv::Vec<uchar, 3>(color);  
+                    // out_img.at<cv::Vec3b>(i, j) = color;
+		// }
+            }
+        }
+
         // End   OpenCV
 
         // RGB to YV12
@@ -409,13 +499,6 @@ int main(int argc, char *argv[])
 
     int width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
     int height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
-
-    // N = cv::Mat(cv::Size(shape[1], shape[0]), CV_16SC3, d);
-    // N = cv::Mat(cv::Size(width, height), CV_16SC3, cv::Scalar(0));
-    // std::cout << N.cols / 2 << ' ' << shape[1] / 2 << ' ' << N.rows / 2 << ' ' << shape[0] / 2 << ' ' << shape[1] << ' ' <<  shape[0];
-    // std::cout << M.rows << ' ' << M.cols << ' ' << N.rows << ' ' << N.cols << std::endl;
-    // M.copyTo( N(cv::Rect( N.cols / 2 - shape[1] / 2, N.rows / 2 - shape[0] / 2, shape[0], shape[1] )) );
-    // std::cout << "Copied Data";
 
     while (1) {
         FD_ZERO(&fdsv);
