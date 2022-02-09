@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
     fmt.fmt.pix.height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
     fmt.fmt.pix.sizeimage = (default_format == 0) ? (fmt.fmt.pix.width * fmt.fmt.pix.height * 2)
                                                     : (fmt.fmt.pix.width * fmt.fmt.pix.height * 1.5);
-	printf("Format: %d 0:YUYV 1:MJPEG\n", default_format);
+    printf("Format: %d 0:YUYV 1:MJPEG\n", default_format);
     fmt.fmt.pix.pixelformat = (default_format == 0) ? V4L2_PIX_FMT_YUYV : V4L2_PIX_FMT_MJPEG;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
@@ -561,3 +561,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+

@@ -3,7 +3,7 @@
 #define IMAGE_WIDTH_360P    640
 #define IMAGE_HEIGHT_360P   360
 
-#define IMAGE_WIDTH_720P	1280
+#define IMAGE_WIDTH_720P    1280
 #define IMAGE_HEIGHT_720P   720
 
 /* Enable debug prints. */
@@ -278,7 +278,7 @@ static int uvc_open(struct uvc_device **uvc, char *devname)
         goto err;
     }
 
-    dev = calloc(1, sizeof *dev);
+    dev = (uvc_device*) calloc(1, sizeof *dev);
     if (dev == NULL) {
         ret = -ENOMEM;
         goto err;
@@ -318,7 +318,7 @@ static void uvc_video_fill_buffer(struct uvc_device *dev, struct v4l2_buffer *bu
         /* Fill the buffer with video data. */
         bpl = dev->width * 2;
         for (i = 0; i < dev->height; ++i)
-            memset(dev->mem[buf->index].start + i * bpl, dev->color++, bpl);
+            memset((uint8_t*)(dev->mem[buf->index].start) + i * bpl, dev->color++, bpl);
 
         buf->bytesused = bpl * dev->height;
         break;
@@ -561,7 +561,7 @@ static int uvc_video_reqbufs_mmap(struct uvc_device *dev, int nbufs)
     }
 
     /* Map the buffers. */
-    dev->mem = calloc(rb.count, sizeof dev->mem[0]);
+    dev->mem = (buffer*) calloc(rb.count, sizeof dev->mem[0]);
     if (!dev->mem) {
         printf("UVC: Out of memory\n");
         ret = -ENOMEM;
@@ -639,7 +639,7 @@ static int uvc_video_reqbufs_userptr(struct uvc_device *dev, int nbufs)
 
     if (dev->run_standalone) {
         /* Allocate buffers to hold dummy data pattern. */
-        dev->dummy_buf = calloc(rb.count, sizeof dev->dummy_buf[0]);
+        dev->dummy_buf = (buffer*) calloc(rb.count, sizeof dev->dummy_buf[0]);
         if (!dev->dummy_buf) {
             printf("UVC: Out of memory\n");
             ret = -ENOMEM;
@@ -667,7 +667,7 @@ static int uvc_video_reqbufs_userptr(struct uvc_device *dev, int nbufs)
 
             if (V4L2_PIX_FMT_YUYV == dev->fcc)
                 for (j = 0; j < dev->height; ++j)
-                    memset(dev->dummy_buf[i].start + j * bpl, dev->color++, bpl);
+                    memset((uint8_t*)(dev->dummy_buf[i].start) + j * bpl, dev->color++, bpl);
 
             if (V4L2_PIX_FMT_MJPEG == dev->fcc)
                 memcpy(dev->dummy_buf[i].start, dev->imgdata, dev->imgsize);
@@ -1307,7 +1307,7 @@ err:
 static void uvc_events_process(struct uvc_device *dev)
 {
     struct v4l2_event v4l2_event;
-    struct uvc_event *uvc_event = (void *)&v4l2_event.u.data;
+    struct uvc_event *uvc_event = (struct uvc_event*)(&v4l2_event.u.data);
     struct uvc_request_data resp;
     int ret;
 

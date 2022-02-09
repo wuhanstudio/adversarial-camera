@@ -2,11 +2,11 @@
 #include <malloc.h>
 #include <jpeglib.h>
 
-uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, uint8_t* &outbuffer) {
+long unsigned int yv12_to_jpeg(const uint8_t* input, const int width, const int height, uint8_t* &outbuffer) {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
-    uint32_t outlen = 0;
+    long unsigned int outlen = 0;
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
@@ -22,7 +22,7 @@ uint32_t yv12_to_jpeg(const uint8_t* input, const int width, const int height, u
     jpeg_set_quality(&cinfo, 92, TRUE);
     jpeg_start_compress(&cinfo, TRUE);
 
-    uint8_t* tmprowbuf = malloc( sizeof(uint8_t) * (width * 3) );
+    uint8_t* tmprowbuf = (uint8_t*) malloc( sizeof(uint8_t) * (width * 3) );
 
     JSAMPROW row_pointer[1];
     row_pointer[0] = &tmprowbuf[0];

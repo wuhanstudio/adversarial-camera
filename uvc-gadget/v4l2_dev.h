@@ -130,7 +130,7 @@ static int v4l2_reqbufs_mmap(struct v4l2_device *dev, int nbufs)
     }
 
     /* Map the buffers. */
-    dev->mem = calloc(req.count, sizeof dev->mem[0]);
+    dev->mem = (buffer*) calloc(req.count, sizeof dev->mem[0]);
     if (!dev->mem) {
         printf("V4L2: Out of memory\n");
         ret = -ENOMEM;
@@ -432,7 +432,7 @@ static int v4l2_open(struct v4l2_device **v4l2, char *devname, struct v4l2_forma
         goto err;
     }
 
-    dev = calloc(1, sizeof *dev);
+    dev = (v4l2_device*) calloc(1, sizeof *dev);
     if (dev == NULL) {
         ret = -ENOMEM;
         goto err;
