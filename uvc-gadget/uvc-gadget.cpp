@@ -56,6 +56,7 @@ double  averageFrameTimeMilliseconds = 33.333;
 int default_format = 0;         /* V4L2_PIX_FMT_YUYV */
 int default_resolution = 0;     /* VGA 360p */
 
+int add_noise = 0;
 int* d;
 std::vector<unsigned long> shape;
 bool fortran_order;
@@ -117,89 +118,91 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // Begin OpenCV
         // ...........
         // cv::cvtColor(out_img, out_img, cv::COLOR_BGR2RGB);
+
+	if (add_noise) {
+            clock_t beginFrame = clock();
+
+            cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
 	
-        cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
-	
-        clock_t beginFrame = clock();
-	
 
-	for(int i = 0; i < shape[0]; i++) {
-            for(int j = 0; j < shape[1]; j++) {
-                // get pixel
-                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
-		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
-		uint8_t temp; 
+	    for(int i = 0; i < shape[0]; i++) {
+                for(int j = 0; j < shape[1]; j++) {
+                    // get pixel
+                    cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
+		    int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
+		    uint8_t temp; 
 
-		temp = color[0];
-                color[0] += color1[2];
-                if ((color1[2] < 0) && (color[0] > temp))
-		    color[0] = 0;
-                if ((color1[2] > 0) && (color[0] < temp))
-		    color[0] = 255;
+		    temp = color[0];
+                    color[0] += color1[2];
+                    if ((color1[2] < 0) && (color[0] > temp))
+		        color[0] = 0;
+                    if ((color1[2] > 0) && (color[0] < temp))
+		        color[0] = 255;
 
-		temp = color[1];
-                color[1] += color1[1];
-                if ((color1[1] < 0) && (color[1] > temp))
-		    color[1] = 0;
-                if ((color1[1] > 0) && (color[1] < temp))
-		    color[1] = 255;
+		    temp = color[1];
+                    color[1] += color1[1];
+                    if ((color1[1] < 0) && (color[1] > temp))
+		        color[1] = 0;
+                    if ((color1[1] > 0) && (color[1] < temp))
+		        color[1] = 255;
 
-		temp = color[2];
-                color[2] += color1[0];
-                if ((color1[0] < 0) && (color[2] > temp))
-		    color[2] = 0;
-                if ((color1[0] > 0) && (color[2] < temp))
-		    color[2] = 255;
+		    temp = color[2];
+                    color[2] += color1[0];
+                    if ((color1[0] < 0) && (color[2] > temp))
+		        color[2] = 0;
+                    if ((color1[0] > 0) && (color[2] < temp))
+		        color[2] = 255;
+                }
             }
-        }
 	
-        cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
+	    /*
+	    for(int i = 0; i < out_img.rows; i++) {
+                for(int j = 0; j < out_img.cols; j++) {
+                    // get pixel
+                    cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
+                    int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
 
-	/*
-	for(int i = 0; i < out_img.rows; i++) {
-            for(int j = 0; j < out_img.cols; j++) {
-                // get pixel
-                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
-                int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
-
-                for (size_t k = 0; k < 3; k++)
-                {
-                    if (color1[k] < 0) {
-                        if (int(color[2-k]) <= int((-color1[k])))
-                            color[2-k] = 0;
-                        else
-                            color[2-k] += color1[k];
-                    }
-                    else {
-                        if ( (255 - color[2-k]) <= color1[k])
-                            color[2-k] = 255;
-                        else
-                            color[2-k] += color1[k];
+                    for (size_t k = 0; k < 3; k++)
+                    {
+                        if (color1[k] < 0) {
+                            if (int(color[2-k]) <= int((-color1[k])))
+                                color[2-k] = 0;
+                            else
+                                color[2-k] += color1[k];
+                        }
+                        else {
+                            if ( (255 - color[2-k]) <= color1[k])
+                                color[2-k] = 255;
+                            else
+                                color[2-k] += color1[k];
+                        }
                     }
                 }
             }
-        }
-	*/
+	    */
+
+ 	    clock_t endFrame = clock();
+
+            deltaTime += endFrame - beginFrame;
+            frames ++;
+
+            // if you really want FPS
+            if( clockToMilliseconds(deltaTime)>1000.0) {
+                // every second
+                frameRate = (double)frames*0.5 + frameRate*0.5; //more stable
+                frames = 0;
+                deltaTime -= CLOCKS_PER_SEC;
+                averageFrameTimeMilliseconds  = 1000.0/(frameRate==0?0.001:frameRate);
+
+                std::cout<<"CPU time was:"<<averageFrameTimeMilliseconds<<std::endl;
+            }
+
+           cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
+	}
 
         // cv::cvtColor(out_img, out_img, cv::COLOR_RGB2BGR);
         // End   OpenCV
 	
-	clock_t endFrame = clock();
-
-        deltaTime += endFrame - beginFrame;
-        frames ++;
-
-        // if you really want FPS
-        if( clockToMilliseconds(deltaTime)>1000.0) {
-            // every second
-            frameRate = (double)frames*0.5 + frameRate*0.5; //more stable
-            frames = 0;
-            deltaTime -= CLOCKS_PER_SEC;
-            averageFrameTimeMilliseconds  = 1000.0/(frameRate==0?0.001:frameRate);
-
-            std::cout<<"CPU time was:"<<averageFrameTimeMilliseconds<<std::endl;
-        }
-
         // Encode JPEG
         std::vector<uchar> outbuffer;
         cv::imencode(".jpg", out_img, outbuffer);
@@ -225,41 +228,44 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // You may apply OpenCV image processing here
         // Begin OpenCV
         // ...........
-        cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
+        if (add_noise) {
+	    cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
 	
-        for(int i = 0; i < shape[0]; i++) {
-            for(int j = 0; j < shape[1]; j++) {
-                // get pixel
-                cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
-		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
-		uint8_t temp; 
+            for(int i = 0; i < shape[0]; i++) {
+                for(int j = 0; j < shape[1]; j++) {
+                    // get pixel
+                    cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
+		    int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
+		    uint8_t temp; 
 
-		temp = color[0];
-                color[0] += color1[2];
-                if ((color1[2] < 0) && (color[0] > temp))
-		    color[0] = 0;
-                if ((color1[2] > 0) && (color[0] < temp))
-		    color[0] = 255;
+		    temp = color[0];
+                    color[0] += color1[2];
+                    if ((color1[2] < 0) && (color[0] > temp))
+		        color[0] = 0;
+                    if ((color1[2] > 0) && (color[0] < temp))
+		        color[0] = 255;
 
-		temp = color[1];
-                color[1] += color1[1];
-                if ((color1[1] < 0) && (color[1] > temp))
-		    color[1] = 0;
-                if ((color1[1] > 0) && (color[1] < temp))
+		    temp = color[1];
+                    color[1] += color1[1];
+                    if ((color1[1] < 0) && (color[1] > temp))
+		        color[1] = 0;
+                    if ((color1[1] > 0) && (color[1] < temp))
 		    color[1] = 255;
 
-		temp = color[2];
-                color[2] += color1[0];
-                if ((color1[0] < 0) && (color[2] > temp))
-		    color[2] = 0;
-                if ((color1[0] > 0) && (color[2] < temp))
-		    color[2] = 255;
+		    temp = color[2];
+                    color[2] += color1[0];
+                    if ((color1[0] < 0) && (color[2] > temp))
+		        color[2] = 0;
+                    if ((color1[0] > 0) && (color[2] < temp))
+		        color[2] = 255;
+                }
             }
-        }
+
+            cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
+	}
 
         // End   OpenCV
 
-        cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
 
         // RGB to YV12
         cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
@@ -349,6 +355,7 @@ static void usage(const char *argv0)
             "1 = 720p, HD (1280x720)\n");
     fprintf(stderr, " -u device	UVC Video Output device\n");
     fprintf(stderr, " -v device	V4L2 Video Capture device\n");
+    fprintf(stderr, " -n noise	Add adversarial perturbation in noise.npy\n");
     fprintf(stderr, " -h help	Print this help screen and exit\n");
 }
 
@@ -374,7 +381,7 @@ int main(int argc, char *argv[])
 
     enum io_method uvc_io_method = IO_METHOD_USERPTR;
 
-    while ((opt = getopt(argc, argv, "f:r:u:v:h")) != -1) {
+    while ((opt = getopt(argc, argv, "f:r:u:v:nh")) != -1) {
         switch (opt) {
             case 'f':
                 if (atoi(optarg) < 0 || atoi(optarg) > 1) {
@@ -400,6 +407,10 @@ int main(int argc, char *argv[])
 
             case 'v':
                 v4l2_devname = optarg;
+                break;
+
+            case 'n':
+                add_noise = 1;
                 break;
 
             case 'h':
@@ -486,15 +497,17 @@ int main(int argc, char *argv[])
     /* Init UVC events. */
     uvc_events_init(udev);
 
-    npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
-    std::cout << "shape: ";
-    for (size_t i = 0; i < shape.size(); i++)
-        std::cout << shape[i] << ", ";
-    std::cout << std::endl;
+    if(add_noise) {
+        npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
+        std::cout << "noise shape: ";
+        for (size_t i = 0; i < shape.size(); i++)
+            std::cout << shape[i] << ", ";
+        std::cout << std::endl;
 
-    d = (int*)malloc(sizeof(int) * data.size());
-    for (size_t i = 0; i < data.size(); i++)
-        d[i] = int(data[i] * 255);
+        d = (int*)malloc(sizeof(int) * data.size());
+        for (size_t i = 0; i < data.size(); i++)
+                d[i] = int(data[i] * 255);
+    }
 
     int width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
     int height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
