@@ -118,11 +118,13 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // ...........
         // cv::cvtColor(out_img, out_img, cv::COLOR_BGR2RGB);
 	
+        cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
+	
         clock_t beginFrame = clock();
 	
 
-	for(int i = 0; i < out_img.rows; i++) {
-            for(int j = 0; j < out_img.cols; j++) {
+	for(int i = 0; i < shape[0]; i++) {
+            for(int j = 0; j < shape[1]; j++) {
                 // get pixel
                 cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
 		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
@@ -151,6 +153,8 @@ static int v4l2_process_data(struct v4l2_device *dev)
             }
         }
 	
+        cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
+
 	/*
 	for(int i = 0; i < out_img.rows; i++) {
             for(int j = 0; j < out_img.cols; j++) {
@@ -221,46 +225,41 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // You may apply OpenCV image processing here
         // Begin OpenCV
         // ...........
-        for(int i = 0; i < out_img.rows; i++) {
-            for(int j = 0; j < out_img.cols; j++) {
+        cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
+	
+        for(int i = 0; i < shape[0]; i++) {
+            for(int j = 0; j < shape[1]; j++) {
                 // get pixel
                 cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
 		int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
-		// cv::Vec<int, 3> color1 = N.at<cv::Vec<int, 3>>(cv::Point(i, j));
+		uint8_t temp; 
 
-		// if ((color1[0] + color1[1] + color1[2]) != 0)
-                // {
-			uint8_t temp; 
+		temp = color[0];
+                color[0] += color1[2];
+                if ((color1[2] < 0) && (color[0] > temp))
+		    color[0] = 0;
+                if ((color1[2] > 0) && (color[0] < temp))
+		    color[0] = 255;
 
-			temp = color[0];
-                        color[0] += color1[2];
-                        if ((color1[2] < 0) && (color[0] > temp))
-		            color[0] = 0;
-                        if ((color1[2] > 0) && (color[0] < temp))
-		            color[0] = 255;
+		temp = color[1];
+                color[1] += color1[1];
+                if ((color1[1] < 0) && (color[1] > temp))
+		    color[1] = 0;
+                if ((color1[1] > 0) && (color[1] < temp))
+		    color[1] = 255;
 
-			temp = color[1];
-                        color[1] += color1[1];
-                        if ((color1[1] < 0) && (color[1] > temp))
-		            color[1] = 0;
-                        if ((color1[1] > 0) && (color[1] < temp))
-		            color[1] = 255;
-
-			temp = color[2];
-                        color[2] += color1[0];
-                        if ((color1[0] < 0) && (color[2] > temp))
-		            color[2] = 0;
-                        if ((color1[0] > 0) && (color[2] < temp))
-		            color[2] = 255;
-
-                    // set pixel
-                    // color = cv::Vec<uchar, 3>(color);  
-                    // out_img.at<cv::Vec3b>(i, j) = color;
-		// }
+		temp = color[2];
+                color[2] += color1[0];
+                if ((color1[0] < 0) && (color[2] > temp))
+		    color[2] = 0;
+                if ((color1[0] > 0) && (color[2] < temp))
+		    color[2] = 255;
             }
         }
 
         // End   OpenCV
+
+        cv::resize(out_img, out_img, cv::Size(width, height), cv::INTER_LINEAR);
 
         // RGB to YV12
         cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
@@ -487,7 +486,7 @@ int main(int argc, char *argv[])
     /* Init UVC events. */
     uvc_events_init(udev);
 
-    npy::LoadArrayFromNumpy("noises.npy", shape, fortran_order, data);
+    npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
     std::cout << "shape: ";
     for (size_t i = 0; i < shape.size(); i++)
         std::cout << shape[i] << ", ";
