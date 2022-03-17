@@ -41,6 +41,10 @@
 #define IMAGE_WIDTH_720P    1280
 #define IMAGE_HEIGHT_720P   720
 
+#include <fstream>
+int recording = 0;
+cv::VideoWriter writer;
+
 double clockToMilliseconds(clock_t ticks){
     // units/(units/time) => time (seconds) * 1000 = milliseconds
     return (ticks/(double)CLOCKS_PER_SEC)*1000.0;
@@ -65,6 +69,7 @@ std::vector<double> data;
 static int v4l2_process_data(struct v4l2_device *dev)
 {
     int ret;
+    cv::Mat origin_img;
     struct v4l2_buffer vbuf;
     struct v4l2_buffer ubuf;
 
@@ -108,7 +113,11 @@ static int v4l2_process_data(struct v4l2_device *dev)
     // MJPEG --> MJPEG
     if(default_format == 1) {
         // Decode JPEG
-        cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+        origin_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+
+        // cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+	cv::Mat out_img = origin_img.clone();
+
         if ( out_img.data == NULL )   
         {
             printf("Error decoding");
@@ -221,9 +230,12 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
 
         // YUYV to RGB
-        cv::Mat img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
-        cv::Mat out_img;
-        cv::cvtColor(img, out_img, cv::COLOR_YUV2RGB_YVYU);
+        origin_img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
+
+	// cv::Mat out_img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
+        cv::Mat out_img = origin_img.clone();
+
+        cv::cvtColor(origin_img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
         // You may apply OpenCV image processing here
         // Begin OpenCV
@@ -268,12 +280,12 @@ static int v4l2_process_data(struct v4l2_device *dev)
 
 
         // RGB to YV12
-        cv::cvtColor(out_img, img, cv::COLOR_RGB2YUV_YV12);
+        cv::cvtColor(out_img, out_img, cv::COLOR_RGB2YUV_YV12);
 
         // YV12 to JPEG
         uint8_t* outbuffer = NULL;
-        cv::Mat input = img.reshape(1, img.total()*img.channels());
-        std::vector<uint8_t> vec = img.isContinuous()? input : input.clone();
+        cv::Mat input = out_img.reshape(1, out_img.total()*out_img.channels());
+        std::vector<uint8_t> vec = out_img.isContinuous()? input : input.clone();
         uint32_t outlen = yv12_to_jpeg(vec.data(), width, height, outbuffer);
 
         // Copy to UVC device
@@ -289,6 +301,51 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // ofs.write((const char*) &output[0], output.size());
         // ofs.close();
     }
+
+    	std::fstream fin;
+	fin.open("capture");
+
+	if(fin.is_open()){
+	    imwrite("input.jpg", origin_img);
+	    fin.close();
+	    remove("capture");
+	}
+
+	std::fstream fstart;
+	fstart.open("start");
+
+	if(fstart.is_open()){
+		recording = 1;
+    		int codec = cv::VideoWriter::fourcc('M', 'P', '4', 'V');
+    		double fps = 30.0;
+		std::string filename = "live.mp4";
+		cv::Size sizeFrame(width, height);
+    		writer.open(filename, codec, fps, sizeFrame, 1);
+		std::cout << "Started writing video... " << std::endl;
+	    	fstart.close();
+	    	remove("start");
+	}
+
+	if(recording) {
+		cv::Size sizeFrame(width, height);
+		cv::Mat xframe;
+		cv::resize(origin_img, xframe, sizeFrame);
+        	writer.write(xframe);
+    	}
+
+	std::fstream fstop;
+	fstop.open("stop");
+
+	if(fstop.is_open()){
+		recording = 0;
+	    	fstop.close();
+	    	remove("stop");
+		std::cout << "Write complete !" << std::endl;
+    		writer.release();
+	}
+
+    // cv::imshow("origin", origin_img);
+    // cv::waitKey(1);
 
     /* Queue video buffer to UVC domain. */
     CLEAR(ubuf);
