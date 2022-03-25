@@ -5,7 +5,12 @@ const { exec } = require('child_process');
 // Web Server
 var express = require('express')
 var app = express()
+var router = express.Router()
 var port = process.env.PORT || 3000;
+
+// Upload Files
+global.__basedir = __dirname
+var upload = require('./app/config/multer.config.js')
 
 // Static Website
 app.use(express.static('resources'))
@@ -127,11 +132,18 @@ io.on('connection', async (socket) => {
     }, 1000);
   })
 
+  // Playback message
+  socket.on('info', (msg) => {
+    io.emit('info', msg)
+  })
+  
   // Client disconnected
   socket.on('disconnect', () => {
 
   })
 })
+
+require('./app/routers/file.router.js')(app, router, upload)
 
 // Create a Server
 var server = http.listen(port, () => {

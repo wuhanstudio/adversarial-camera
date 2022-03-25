@@ -43,6 +43,7 @@
 
 #include <fstream>
 int recording = 0;
+int capturing = 0;
 cv::VideoWriter writer;
 
 double clockToMilliseconds(clock_t ticks){
@@ -110,13 +111,72 @@ static int v4l2_process_data(struct v4l2_device *dev)
     int width = (default_resolution == 0) ? IMAGE_WIDTH_360P : IMAGE_WIDTH_720P;
     int height = (default_resolution == 0) ? IMAGE_HEIGHT_360P : IMAGE_HEIGHT_720P;
 
+    std::fstream fnoise;
+    fnoise.open("noise");
+
+    if(fnoise.is_open()) {
+        npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
+        std::cout << "noise shape: ";
+        for (size_t i = 0; i < shape.size(); i++)
+            std::cout << shape[i] << ", ";
+        std::cout << std::endl;
+	
+	if(d != NULL)
+	{
+	    free(d);
+	}
+        d = (int*)malloc(sizeof(int) * data.size());
+        for (size_t i = 0; i < data.size(); i++)
+                d[i] = int(data[i] * 255);
+	fnoise.close();
+        remove("noise");
+    }
+
+    
+    std::fstream fin;
+    fin.open("capture");
+
+    if(fin.is_open()) {
+	capturing = 1;
+	fin.close();
+    }
+
+    std::fstream fstart;
+    fstart.open("start");
+
+    if(fstart.is_open() ){
+        recording = 1;
+	fstart.close();
+        remove("start");
+	int codec = cv::VideoWriter::fourcc('M', 'P', '4', 'V');
+    	double fps = 30.0;
+	std::string filename = "live.mp4";
+	cv::Size sizeFrame(width, height);
+    	writer.open(filename, codec, fps, sizeFrame, 1);
+	std::cout << "Started writing video... " << std::endl;
+    }
+
+    std::fstream fstop;
+    fstop.open("stop");
+
+    if(fstop.is_open()){
+        recording = 0;
+	fstop.close();
+	remove("stop");
+        std::cout << "Write complete !" << std::endl;
+    	writer.release();
+    }
+
+
     // MJPEG --> MJPEG
     if(default_format == 1) {
         // Decode JPEG
-        origin_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
 
-        // cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
-	cv::Mat out_img = origin_img.clone();
+	cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+
+	if (recording || capturing) {
+            origin_img = out_img.clone();
+	}
 
         if ( out_img.data == NULL )   
         {
@@ -230,12 +290,14 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // uint32_t outlen = compressYUYVtoJPEG(vec.data(), 640, 360, outbuffer);
 
         // YUYV to RGB
-        origin_img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
+	cv::Mat out_img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
 
 	// cv::Mat out_img = cv::Mat(cv::Size(width, height), CV_8UC2, dev->mem[vbuf.index].start);
-        cv::Mat out_img = origin_img.clone();
+	if (recording || capturing) {
+            origin_img = out_img.clone();
+	}
 
-        cv::cvtColor(origin_img, out_img, cv::COLOR_YUV2RGB_YVYU);
+        cv::cvtColor(out_img, out_img, cv::COLOR_YUV2RGB_YVYU);
 
         // You may apply OpenCV image processing here
         // Begin OpenCV
@@ -302,28 +364,10 @@ static int v4l2_process_data(struct v4l2_device *dev)
         // ofs.close();
     }
 
-    	std::fstream fin;
-	fin.open("capture");
-
-	if(fin.is_open()){
+	if(capturing){
 	    imwrite("input.jpg", origin_img);
-	    fin.close();
-	    remove("capture");
-	}
-
-	std::fstream fstart;
-	fstart.open("start");
-
-	if(fstart.is_open()){
-		recording = 1;
-    		int codec = cv::VideoWriter::fourcc('M', 'P', '4', 'V');
-    		double fps = 30.0;
-		std::string filename = "live.mp4";
-		cv::Size sizeFrame(width, height);
-    		writer.open(filename, codec, fps, sizeFrame, 1);
-		std::cout << "Started writing video... " << std::endl;
-	    	fstart.close();
-	    	remove("start");
+	    capturing = 0;
+            remove("capture");
 	}
 
 	if(recording) {
@@ -332,17 +376,6 @@ static int v4l2_process_data(struct v4l2_device *dev)
 		cv::resize(origin_img, xframe, sizeFrame);
         	writer.write(xframe);
     	}
-
-	std::fstream fstop;
-	fstop.open("stop");
-
-	if(fstop.is_open()){
-		recording = 0;
-	    	fstop.close();
-	    	remove("stop");
-		std::cout << "Write complete !" << std::endl;
-    		writer.release();
-	}
 
     // cv::imshow("origin", origin_img);
     // cv::waitKey(1);
