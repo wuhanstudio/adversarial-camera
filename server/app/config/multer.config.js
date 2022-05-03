@@ -9,15 +9,17 @@ var storage = multer.diskStorage({
         }
         cb(null, __basedir + '/uploads/')
     },
-    filename: (req, file, cb) => {
+    filename: async (req, file, cb) => {
         console.log('noise.npy saved.')
-
-        // Copy noise.npy for uvc-gadget
+	
+        // Copy noise.npy to uvc-gadget
         fs.copyFile('uploads/noise.npy', '../uvc-gadget/noise.npy', (err) => {
-            if (err) throw err;
-        });
-        // Notify the uvc-gadget
-        fs.closeSync(fs.openSync('../uvc-gadget/noise', 'w'));
+        	if (err) throw err;
+        	// Notify the uvc-gadget
+        	fs.closeSync(fs.openSync('../uvc-gadget/noise', 'w'));
+        	console.log('noise.npy copied.')
+	});
+
 
         cb(null, 'noise.npy');
     }

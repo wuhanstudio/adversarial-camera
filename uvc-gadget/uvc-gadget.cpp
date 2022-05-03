@@ -65,7 +65,6 @@ int add_noise = 0;
 int* d;
 std::vector<unsigned long> shape;
 bool fortran_order;
-std::vector<double> data;
 
 static int v4l2_process_data(struct v4l2_device *dev)
 {
@@ -115,6 +114,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
     fnoise.open("noise");
 
     if(fnoise.is_open()) {
+        std::vector<double> data;
         npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
         std::cout << "noise shape: ";
         for (size_t i = 0; i < shape.size(); i++)
@@ -192,34 +192,33 @@ static int v4l2_process_data(struct v4l2_device *dev)
             clock_t beginFrame = clock();
 
             cv::resize(out_img, out_img, cv::Size(shape[1], shape[0]), cv::INTER_LINEAR);
-	
 
 	    for(int i = 0; i < shape[0]; i++) {
                 for(int j = 0; j < shape[1]; j++) {
                     // get pixel
                     cv::Vec3b& color = out_img.at<cv::Vec3b>(i, j);
-		    int* color1 = &d[i * out_img.cols * 3 + j * 3 ];
+		    int* noise_c = &d[i * out_img.cols * 3 + j * 3 ];
 		    uint8_t temp; 
 
 		    temp = color[0];
-                    color[0] += color1[2];
-                    if ((color1[2] < 0) && (color[0] > temp))
+                    color[0] += noise_c[2];
+                    if ((noise_c[2] < 0) && (color[0] > temp))
 		        color[0] = 0;
-                    if ((color1[2] > 0) && (color[0] < temp))
+                    if ((noise_c[2] > 0) && (color[0] < temp))
 		        color[0] = 255;
 
 		    temp = color[1];
-                    color[1] += color1[1];
-                    if ((color1[1] < 0) && (color[1] > temp))
+                    color[1] += noise_c[1];
+                    if ((noise_c[1] < 0) && (color[1] > temp))
 		        color[1] = 0;
-                    if ((color1[1] > 0) && (color[1] < temp))
+                    if ((noise_c[1] > 0) && (color[1] < temp))
 		        color[1] = 255;
 
 		    temp = color[2];
-                    color[2] += color1[0];
-                    if ((color1[0] < 0) && (color[2] > temp))
+                    color[2] += noise_c[0];
+                    if ((noise_c[0] < 0) && (color[2] > temp))
 		        color[2] = 0;
-                    if ((color1[0] > 0) && (color[2] < temp))
+                    if ((noise_c[0] > 0) && (color[2] < temp))
 		        color[2] = 255;
                 }
             }
@@ -588,6 +587,7 @@ int main(int argc, char *argv[])
     uvc_events_init(udev);
 
     if(add_noise) {
+        std::vector<double> data;
         npy::LoadArrayFromNumpy("noise.npy", shape, fortran_order, data);
         std::cout << "noise shape: ";
         for (size_t i = 0; i < shape.size(); i++)
