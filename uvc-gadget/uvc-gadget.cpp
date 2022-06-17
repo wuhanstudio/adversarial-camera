@@ -171,8 +171,8 @@ static int v4l2_process_data(struct v4l2_device *dev)
     // MJPEG --> MJPEG
     if(default_format == 1) {
         // Decode JPEG
-
-	cv::Mat out_img = cv::imdecode(cv::Mat(cv::Size(width, height), CV_8UC1, dev->mem[vbuf.index].start), cv::IMREAD_COLOR);
+        cv::_InputArray pic_arr((uint8_t*)dev->mem[vbuf.index].start, width * height * 3);
+	cv::Mat out_img = cv::imdecode(pic_arr, cv::IMREAD_UNCHANGED);
 
 	if (recording || capturing) {
             origin_img = out_img.clone();
@@ -278,7 +278,7 @@ static int v4l2_process_data(struct v4l2_device *dev)
         uint32_t outlen = sizeof(uchar) * outbuffer.size();
         vbuf.length = outlen;
         vbuf.bytesused = outlen;
-        memcpy(dev->mem[vbuf.index].start, outbuffer.data(), outlen);
+        memcpy((uint8_t*)dev->mem[vbuf.index].start, outbuffer.data(), outlen);
     }
     // YUYV --> MJPEG
     else {

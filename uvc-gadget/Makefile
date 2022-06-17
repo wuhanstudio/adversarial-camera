@@ -5,15 +5,15 @@ KERNEL_DIR		?= /usr/src/linux
 CXX			:= $(CROSS_COMPILE)g++
 CXXFLAGS		:= -fpermissive -Wno-write-strings -Ofast $(KERNEL_INCLUDE) # -std=c++11
 LDFLAGS			:= -g
-KERNEL_INCLUDE		:= -I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/arch/$(ARCH)/include
+KERNEL_INCLUDE		:= -I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/arch/$(ARCH)/include -I/usr/include/opencv4
 
 all: uvc-gadget
 
 %.o: %.cpp
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< -I/usr/include/opencv4
 
 uvc-gadget: uvc-gadget.o
-	$(CXX) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv libjpeg`
+	$(CXX) $(LDFLAGS) -o $@ $^ `pkg-config --libs opencv4 libjpeg`
 
 clean:
 	rm -f *.o
