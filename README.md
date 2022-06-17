@@ -34,7 +34,7 @@ Now you are ready to use this project:
 ```
 # Clone to home directory /home/pi
 $ git clone https://github.com/wuhanstudio/adversarial-camera & cd adversarial-camera
-$ sudo cp piwebcam.service /etc/systemd/system/
+$ sudo cp configfs/piwebcam.service /etc/systemd/system/
 $ sudo systemctl enable piwebcam
 $ cd uvc-gadget && make
 ```
@@ -74,8 +74,7 @@ Dummy video device (0x0000) (platform:v4l2loopback-000):
 Now you can fake a USB camera:
 
 ```
-$ ./start.sh
-$ sudo ./src/uvc-gadget -f 0 -r 1 -u /dev/video0 -v /dev/video1
+$ sudo ./uvc-gadget/uvc-gadget -f 1 -r 1 -u /dev/video0 -v /dev/video1
 ```
 
 ## uvc-gadget
