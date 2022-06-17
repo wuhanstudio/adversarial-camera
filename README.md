@@ -5,6 +5,16 @@ An adversarial USB camera that fools Deep Learning models for object detection.
 ![](doc/demo.png)
 ![](doc/filter.jpg)
 
+**Important: Please use [2021-10-30-raspios-bullseye-armhf.img](https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/)**
+
+There is a known issue on the latest version of raspios:
+
+```
+UVC: Possible USB shutdown requested from Host, seen during VIDIOC_DQBUF
+select timeout
+UVC: Stopping video stream.
+```
+
 Editing the `/boot/cmdline.txt` to enable the OTG mode:
 
 ```
