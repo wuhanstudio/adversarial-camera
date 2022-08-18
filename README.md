@@ -123,3 +123,10 @@ and Robert Baldyga's patchset
 
 - Add Readme/.gitignore and documentations  
   Copy linux-3.18.y/drivers/usb/gadget/function/uvc.h into repository, change include path for build
+
+## Citations
+
+The Universal Adversarial Perturbation is generated using the [WHite-box Adversarial Toolbox (WHAT)](https://github.com/wuhanstudio/whitebox-adversarial-toolbox).
+
+<img src="https://camo.githubusercontent.com/1aa1ac6b346540aa672c2f89fe93dc2e23ee478331fe9ad0f1c26d527fcdad8f/68747470733a2f2f776861742e777568616e73747564696f2e756b2f696d616765732f776861742e706e67" width="30%" />
+
