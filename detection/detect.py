@@ -64,17 +64,16 @@ def fix_patch(sid, data):
     if(data > 0):
         # Stop iterating if we choose to fix the patch
         adv_detect.fixed = True
+        print("Generated the perturbation")
     else:
         adv_detect.fixed = False
-    print("Fix Patch: ", data)
+        print("Generating the perturbation")
+
 
 @sio.on('clear_patch')
 def clear_patch(sid, data):
     if(data > 0):
-        if adv_detect.monochrome:
-            adv_detect.noise = np.zeros((416, 416))
-        else:
-            adv_detect.noise = np.zeros((416, 416, 3))
+        adv_detect.noise = np.zeros((416, 416, 3))
         adv_detect.iter = 0
     print('Clear Patch')
 
@@ -88,13 +87,14 @@ def save_patch(sid):
 
 # Detetion thread
 def adversarial_detection_thread():  
-    global adv_detect
+    global adv_detect, camera
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     while(True): 
         # Capture the video frame
         success, origin_cv_image = camera.read()  # read the camera frame
         if not success:
+            print("Failed to open the camera")
             break
 
         input_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
@@ -135,12 +135,12 @@ def websocket_server_thread():
 
 
 if __name__ == '__main__':
+
     # Parse arguments
     parser = argparse.ArgumentParser(description='Adversarial Detection')
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
     parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="multi_untargeted")
-    parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
     parser.add_argument('--letter_box', action='store_true', help='use letter box resize')
     args = parser.parse_args()
 
@@ -149,7 +149,7 @@ if __name__ == '__main__':
         content = f.readlines()
     classes = [x.strip() for x in content] 
 
-    adv_detect = AdversarialDetection(args.model, args.attack, args.monochrome, classes)
+    adv_detect = AdversarialDetection(args.model, args.attack, classes)
 
     t1 = threading.Thread(target=adversarial_detection_thread, daemon=True)
     t1.start()
