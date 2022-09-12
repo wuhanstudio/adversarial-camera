@@ -8,7 +8,7 @@ tf.compat.v1.disable_eager_execution()
 import keras.backend as K
 
 class AdversarialDetection:
-    def __init__(self, model, attack_type, classes,learning_rate = 4 / 255.0, batch = 1, decay = 0.98):
+    def __init__(self, model, attack_type, classes,learning_rate = 2 / 255.0, batch = 1, decay = 0.98):
         self.classes = len(classes)
         self.epsilon = 1
         self.graph = tf.compat.v1.get_default_graph()

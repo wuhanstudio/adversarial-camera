@@ -88,8 +88,10 @@ def save_patch(sid):
 # Detetion thread
 def adversarial_detection_thread():  
     global adv_detect, camera
-    colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+    # colors = np.tile((255.0, 0.0, 0.0), (len(classes), 1))
+ 
     while(True): 
         # Capture the video frame
         success, origin_cv_image = camera.read()  # read the camera frame
@@ -121,7 +123,9 @@ def adversarial_detection_thread():
         # Draw bounding boxes
         out_img = cv2.cvtColor(input_cv_image, cv2.COLOR_RGB2BGR)
         out_img = draw_bounding_box(out_img, boxes, confidences, class_ids, classes, colors)
-        cv2.imshow("result", out_img)
+
+        cv2.namedWindow("Adversarial Detection", cv2.WINDOW_NORMAL)
+        cv2.imshow("Adversarial Detection", cv2.resize(out_img, (1280, 720)))
         cv2.waitKey(1)
 
 # Websocket thread
