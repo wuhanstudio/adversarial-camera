@@ -89,8 +89,8 @@ def save_patch(sid):
 def adversarial_detection_thread():  
     global adv_detect, camera
 
-    colors = np.random.uniform(0, 255, size=(len(classes), 3))
-    # colors = np.tile((255.0, 0.0, 0.0), (len(classes), 1))
+    colors = np.random.uniform(0, 255, size=(len(classes), 3)) / 255.0
+    # colors = np.tile((255.0, 0.0, 0.0), (len(classes), 1)) / 255.0
  
     while(True): 
         # Capture the video frame
@@ -121,8 +121,8 @@ def adversarial_detection_thread():
         print ("fps: ", str(round(fps, 2)))
 
         # Draw bounding boxes
-        out_img = cv2.cvtColor(input_cv_image, cv2.COLOR_RGB2BGR)
-        out_img = draw_bounding_box(out_img, boxes, confidences, class_ids, classes, colors)
+        out_img = draw_bounding_box(input_cv_image, boxes, confidences, class_ids, classes, colors)
+        out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
 
         cv2.namedWindow("Adversarial Detection", cv2.WINDOW_NORMAL)
         cv2.imshow("Adversarial Detection", cv2.resize(out_img, (1280, 720)))
