@@ -1,4 +1,4 @@
-name: adversarial-detection
+name: adversarial-camera
 channels:
   - defaults
 dependencies:
