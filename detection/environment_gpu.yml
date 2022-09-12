@@ -1,4 +1,4 @@
-name: adversarial-detection-gpu
+name: adversarial-gpu-camera
 channels:
   - defaults
 dependencies:
