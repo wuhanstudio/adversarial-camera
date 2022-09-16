@@ -2,7 +2,7 @@
 
 > Is Deep Learning secure for Robots?
 
-[[ Talk ]](https://minm.wuhanstudio.uk) [[ Video ]]() [[ Paper ]](https://arxiv.org/abs/2208.07174) [[ Code ]](https://github.com/wuhanstudio/adversarial-camera)
+[[ Talk ]](https://minm.wuhanstudio.uk) [[ Video ]](https://youtu.be/OvIpe-R3ZS8) [[ Paper ]](https://arxiv.org/abs/2208.07174) [[ Code ]](https://github.com/wuhanstudio/adversarial-camera)
 
 
 This project uses a Raspberry Pi 4 to fool the object detection system in real-time. 
