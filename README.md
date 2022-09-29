@@ -47,7 +47,7 @@ The `hardware` folder contains instructions that help you deploy the perturbatio
 ### Citations
 
 ```
-@misc{minm2022,
+@misc{han2022minm,
   doi = {10.48550/ARXIV.2208.07174},
   url = {https://arxiv.org/abs/2208.07174},
   author = {Wu, Han and Rowlands, Sareh and Wahlstrom, Johan},
