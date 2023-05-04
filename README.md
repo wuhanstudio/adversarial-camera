@@ -51,7 +51,7 @@ The `hardware` folder contains instructions that help you deploy the perturbatio
   doi = {10.48550/ARXIV.2208.07174},
   url = {https://arxiv.org/abs/2208.07174},
   author = {Wu, Han and Rowlands, Sareh and Wahlstrom, Johan},
-  title = {Man-in-the-Middle Attack against Object Detection Systems},
+  title = {A Man-in-the-Middle Attack against Object Detection Systems},
   publisher = {arXiv},
   year = {2022}
 }
