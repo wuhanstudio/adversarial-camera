@@ -40,7 +40,7 @@ dtoverlay=dwc2
 Now you are ready to compile the program:
 
 ```
-$ git clone https://github.com/wuhanstudio/adversarial-camera & cd adversarial-camera/hardware/rasbian
+$ git clone https://github.com/wuhanstudio/adversarial-camera && cd adversarial-camera/hardware/rasbian
 $ sudo cp configfs/piwebcam.service configfs/piwebcam configfs/usb-gadget.sh /etc/systemd/system/
 $ sudo systemctl enable piwebcam
 $ cd uvc-gadget && make
