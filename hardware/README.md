@@ -48,7 +48,7 @@ Now you are ready to compile the program:
 ```
 # Clone to home directory /home/pi
 $ git clone https://github.com/wuhanstudio/adversarial-camera & cd adversarial-camera/hardware
-$ sudo cp configfs/piwebcam.service /etc/systemd/system/
+$ sudo cp configfs/piwebcam.service configfs/piwebcam configfs/usb-gadget.sh /etc/systemd/system/
 $ sudo systemctl enable piwebcam
 $ cd uvc-gadget && make
 ```
