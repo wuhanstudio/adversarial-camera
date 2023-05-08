@@ -1,0 +1,9 @@
+config BR2_PACKAGE_UVC_GADGET
+    bool "uvc-gadget"
+    select BR2_PACKAGE_JPEG
+    select BR2_PACKAGE_OPENCV4
+    select BR2_PACKAGE_OPENCV4_LIB_HIGHGUI
+    help
+        Adversarial Camera package.
+
+        https://github.com/wuhanstudio/adversarial-camera

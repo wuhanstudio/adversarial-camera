@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_RASPI4_MINM_ATTACK_PATH/package/uvc-gadget/Config.in"
