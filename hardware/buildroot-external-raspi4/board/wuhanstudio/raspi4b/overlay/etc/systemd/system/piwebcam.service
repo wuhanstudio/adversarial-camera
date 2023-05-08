@@ -6,8 +6,8 @@ ExecStart=/etc/systemd/system/piwebcam
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=piwebcam
-User=pi
-Group=pi
+User=root
+Group=root
 WorkingDirectory=/etc/systemd/system
 
 [Install]
