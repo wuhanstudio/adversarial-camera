@@ -2,7 +2,7 @@
 
 # sudo modprobe v4l2loopback devices=2 video_nr="40" max_buffers="8" exclusive_caps="1"
 
-sudo /etc/system/systemd/usb-gadget.sh
+sudo /etc/systemd/system/usb-gadget.sh
 
 /usr/bin/v4l2-ctl -c auto_exposure=0
 /usr/bin/v4l2-ctl -c auto_exposure_bias=8
