@@ -24,7 +24,7 @@ $ python detect.py --model model/yolov3-tiny.h5 --class_name coco_classes.txt
 
 The web page will be available at: http://localhost:9090/
 
-That's it! The perturbation is saved as `noise.npy` file in the folder `noise`.
+That's it! The perturbation is saved as `noise.npy` file in the `detection/noise/` folder.
 
 <img src="../doc/web.png" width=80%>
 <img src="../doc/filter.jpg" width=80%>
