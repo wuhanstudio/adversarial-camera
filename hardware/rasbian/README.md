@@ -51,17 +51,17 @@ If everything works fine,  **reboot** the system with a USB camera plugged in. Y
 ```
 pi@raspberrypi:~ $ v4l2-ctl --list-device
 fe980000.usb (gadget):
-        /dev/video0
+        /dev/video2
 
 USB2.0 PC CAMERA: USB2.0 PC CAM (usb-0000:01:00.0-1.4):
+        /dev/video0
         /dev/video1
-        /dev/video2
 ```
 
 Now you can fake a USB camera:
 
 ```
-$ sudo ./uvc-gadget/uvc-gadget -u /dev/video0 -v /dev/video1 -f 1 -r 1
+$ sudo ./uvc-gadget -u /dev/video2 -v /dev/video0 -f 1 -r 1
 ```
 
 **Cheers!** If the raspberry pi is connected to a Windows PC, you should see a new camera device from device manager.
