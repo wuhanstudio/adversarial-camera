@@ -7,11 +7,15 @@ We first need to generate an image-agnostic Universal Adversarial Perturbation (
 You may use [anaconda](https://www.continuum.io/downloads) or [miniconda](https://conda.io/miniconda.html). 
 
 ```
-$ # CPU
+# Clone the repo
+$ git clone https://github.com/wuhanstudio/adversarial-camera/
+$ cd adversarial-camera/detection
+
+# For CPU
 $ conda env create -f environment.yml
 $ conda activate adversarial-camera
 
-$ # GPU
+# For GPU
 $ conda env create -f environment_gpu.yml
 $ conda activate adversarial-gpu-camera
 
