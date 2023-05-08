@@ -1,11 +1,11 @@
 There are two different ways to apply the perturbation, either using Rasbian or Buildroot.
 
-## Step 2: Applying the perturbation (Rasbian)
+## Step 2: Deploying the perturbation (Rasbian)
 
 Please follow instructions in the [rasbian](rasbian) foler.
 
 
-## Step 2: Applying the perturbation (Buildroot)
+## Step 2: Deploying the perturbation (Buildroot)
 
 ```
 # Clone the repo
