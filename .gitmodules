@@ -1,0 +1,3 @@
+[submodule "hardware/buildroot"]
+	path = hardware/buildroot
+	url = https://git.buildroot.net/buildroot
