@@ -1,12 +1,8 @@
-## Adversarial Detection
+# Step1: Generating the perturbation
 
-> Step1: Generating the perturbation (Universal Adversarial Perturbation)
+We first need to generate an image-agnostic Universal Adversarial Perturbation (UAP).
 
-![](../doc/web.png)
-
-![](../doc/filter.jpg)
-
-### Quick Start
+## Quick Start
 
 You may use [anaconda](https://www.continuum.io/downloads) or [miniconda](https://conda.io/miniconda.html). 
 
@@ -26,9 +22,10 @@ The web page will be available at: http://localhost:9090/
 
 That's it! The perturbation is saved as `noise.npy` file in the folder `noise`.
 
+<img src="../doc/web.png" width=80%>
+<img src="../doc/filter.jpg" width=80%>
 
-
-### White-box Adversarial Toolbox
+## White-box Adversarial Toolbox
 
 Alternatively, you can generate the UAP using the [WHite-box Adversarial Toolbox (WHAT)](https://github.com/wuhanstudio/whitebox-adversarial-toolbox).
 
@@ -36,6 +33,6 @@ Alternatively, you can generate the UAP using the [WHite-box Adversarial Toolbox
 
 
 
-### Step 2: Deploying the Perturbation
+# Step 2: Deploying the Perturbation
 
 You can use a raspberry pi 4 to deploy the perturbation ([documentation](../hardware/README.md)).
