@@ -1,4 +1,4 @@
-# Step 1: Generating the perturbation
+# Step 1: Generating the Perturbation
 
 We first need to generate an image-agnostic Universal Adversarial Perturbation (UAP).
 
