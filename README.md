@@ -21,7 +21,7 @@ The Man-in-the-Middle Attack consists of two steps:
 
 We’ve released pre-built images for Raspberry Pi 4 that can be flashed to microSD cards:
 
-- For development: **rasbian_minm_attack.img**
+- For development: **raspbian_minm_attack.img**
 - For release: **buildroot_minm_attack.img**
 
 Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/releases).
