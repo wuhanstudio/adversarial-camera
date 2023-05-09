@@ -1,20 +1,14 @@
-> Please use pre-built images if you don't want to build the system from scratch.
-
-We’ve released pre-built images for Raspberry Pi 4 that can be flashed to microSD cards:
-
-- For development: **rasbian_minm_attack.img**
-- For release: **buildroot_minm_attack.img**
+> Please use pre-built images if you don't want to build the system from scratch. 
 
 Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/releases).
 
-
+<br />
 
 ## Step 2: Deploying the perturbation (Rasbian)
 
 Please follow instructions in the [rasbian](rasbian) foler.
 
-
-
+<br />
 
 ## Step 2: Deploying the perturbation (Buildroot)
 
@@ -35,6 +29,8 @@ $ git apply ../buildroot_rpi_firmware_opencv4.patch
 $ make BR2_EXTERNAL=../buildroot-external-raspi4/ raspi4_minm_attack_defconfig
 $ make BR2_EXTERNAL=../buildroot-external-raspi4/
 ```
+
+The Buildroot compilation process could take 30-60 mins depending on the hardware. 
 
 After compiling, the image is available in `output/images/sdcard.img` that can be flashed to a SD card using:
 
