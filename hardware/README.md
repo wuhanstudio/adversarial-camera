@@ -4,9 +4,9 @@ Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/
 
 <br />
 
-## Step 2: Deploying the perturbation (Rasbian)
+## Step 2: Deploying the perturbation (Raspbian)
 
-Please follow instructions in the [rasbian](rasbian) foler.
+Please follow instructions in the [raspbian](raspbian) foler.
 
 <br />
 
