@@ -2,13 +2,13 @@
 Description=Stars pi webcam service
 
 [Service]
-ExecStart=/etc/systemd/system/piwebcam
+ExecStart=/etc/piwebcam/init.sh
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=piwebcam
 User=root
 Group=root
-WorkingDirectory=/etc/systemd/system
+WorkingDirectory=/etc/piwebcam
 
 [Install]
 WantedBy=basic.target

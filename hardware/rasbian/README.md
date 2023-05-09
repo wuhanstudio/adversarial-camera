@@ -39,7 +39,8 @@ $ git clone https://github.com/wuhanstudio/adversarial-camera
 $ cd adversarial-camera/hardware/rasbian
 
 # Enable the configuration as a service
-$ sudo cp configfs/piwebcam.service configfs/piwebcam configfs/usb-gadget.sh /etc/systemd/system/
+$ sudo cp systemd/piwebcam.service systemd/piwebcam /etc/systemd/system/
+$ sudo cp piwebcam -r /etc/
 $ sudo systemctl enable piwebcam
 
 # Compile the program
