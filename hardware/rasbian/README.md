@@ -39,8 +39,9 @@ $ git clone https://github.com/wuhanstudio/adversarial-camera
 $ cd adversarial-camera/hardware/rasbian
 
 # Enable the configuration as a service
-$ sudo cp systemd/piwebcam.service systemd/piwebcam /etc/systemd/system/
-$ sudo cp piwebcam -r /etc/
+$ sudo cp systemd/piwebcam.service /etc/systemd/system/
+$ sudo mkdir /etc/piwebcam
+$ sudo cp -r piwebcam/* /etc/piwebcam
 $ sudo systemctl enable piwebcam
 
 # Compile the program
@@ -68,7 +69,7 @@ $ sudo ./uvc-gadget -u /dev/video2 -v /dev/video0 -f 1 -r 1
 To add the perturbation:
 
 ```
-$ sudo ./uvc-gadget -u /dev/video2 -v /dev/video0 -f 1 -r 1 -n path/to/noise.npy
+$ sudo ./uvc-gadget -u /dev/video2 -v /dev/video0 -f 1 -r 1 -n /etc/piwebcam/noise.npy
 ```
 
 If the raspberry pi is connected to a Windows PC, you should see a new camera device from the device manager.
