@@ -1,4 +1,4 @@
-# Step 2: Deploying the perturbation (Rasbian)
+# Step 2: Deploying the perturbation (Raspbian)
 
 **Important: Please use this version of Raspi OS: [2021-10-30-raspios-bullseye-armhf.img](https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/)**
 
@@ -36,7 +36,7 @@ $ sudo apt install build-essential libopencv-dev libjpeg-dev
 
 # Clone the repo
 $ git clone https://github.com/wuhanstudio/adversarial-camera
-$ cd adversarial-camera/hardware/rasbian
+$ cd adversarial-camera/hardware/raspbian
 
 # Enable the configuration as a service
 $ sudo cp systemd/piwebcam.service /etc/systemd/system/
