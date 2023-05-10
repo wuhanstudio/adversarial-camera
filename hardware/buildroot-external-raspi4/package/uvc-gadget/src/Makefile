@@ -9,6 +9,9 @@ all: uvc-gadget
 uvc-gadget: uvc-gadget.o
 	$(CXX) $(LDFLAGS) -o $@ $^ -lopencv_videoio -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_core -ljpeg
 
+install:
+	install -D -m 0755 $(@D)/uvc-gadget $(TARGET_DIR)/usr/bin
+
 clean:
 	rm -f *.o
 	rm -f uvc-gadget
