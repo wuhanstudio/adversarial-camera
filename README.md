@@ -26,10 +26,39 @@ We’ve released pre-built images for Raspberry Pi 4 that can be flashed to micr
 
 Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/releases).
 
+## WHite-box Adversarial Toolbox (WHAT)
 
+<!-- [![CircleCI](https://circleci.com/gh/wuhanstudio/whitebox-adversarial-toolbox.svg?style=svg)](https://circleci.com/gh/wuhanstudio/whitebox-adversarial-toolbox) -->
+[![Build Status](https://app.travis-ci.com/wuhanstudio/whitebox-adversarial-toolbox.svg?branch=master)](https://app.travis-ci.com/wuhanstudio/whitebox-adversarial-toolbox)
+[![PyPI version](https://badge.fury.io/py/whitebox-adversarial-toolbox.svg)](https://badge.fury.io/py/whitebox-adversarial-toolbox)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/whitebox-adversarial-toolbox)](https://pypi.org/project/whitebox-adversarial-toolbox/)
 
+Alternatively, you can try real-time white-box attacks using our toolbox.
 
-### Citations
+### Installation
+
+```python
+pip install whitebox-adversarial-toolbox
+```
+
+### Usage (CLI)
+
+```
+Usage: what [OPTIONS] COMMAND [ARGS]...
+
+  The CLI tool for WHitebox-box Adversarial Toolbox (what).
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  attack   Manage Attacks
+  example  Manage Examples
+  model    Manage Deep Learning Models
+```
+
+## Citations
 
 ```
 @misc{han2022minm,
