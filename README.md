@@ -26,6 +26,8 @@ We’ve released pre-built images for Raspberry Pi 4 that can be flashed to micr
 
 Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/releases).
 
+<br />
+
 ## WHite-box Adversarial Toolbox (WHAT)
 
 <!-- [![CircleCI](https://circleci.com/gh/wuhanstudio/whitebox-adversarial-toolbox.svg?style=svg)](https://circleci.com/gh/wuhanstudio/whitebox-adversarial-toolbox) -->
