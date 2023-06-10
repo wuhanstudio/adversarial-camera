@@ -8,6 +8,8 @@ We use a Raspberry Pi 4 to eavesdrop and manipulate the video stream transferred
 
 ![](doc/demo.png)
 
+The linux program that injects the perturbation and simulates a virtual USB camera can be found here: [uvc-gadget](https://github.com/wuhanstudio/adversarial-camera/tree/master/hardware/buildroot-external-raspi4/package/uvc-gadget/src).
+
 ![](doc/demo.jpg)
 
 The Man-in-the-Middle Attack consists of two steps:
