@@ -37,6 +37,7 @@ Checkout the [latest release](https://github.com/wuhanstudio/adversarial-camera/
 [![PyPI version](https://badge.fury.io/py/whitebox-adversarial-toolbox.svg)](https://badge.fury.io/py/whitebox-adversarial-toolbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/whitebox-adversarial-toolbox)](https://pypi.org/project/whitebox-adversarial-toolbox/)
+[![](https://img.shields.io/badge/Documentation-brightgreen)](https://what.wuhanstudio.uk/)
 
 Alternatively, you can try real-time white-box attacks using our toolbox.
 
