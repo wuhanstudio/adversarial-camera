@@ -64,17 +64,3 @@ Commands:
   example  Manage Examples
   model    Manage Deep Learning Models
 ```
-
-## Citations
-
-```
-@misc{han2022minm,
-  doi = {10.48550/ARXIV.2208.07174},
-  url = {https://arxiv.org/abs/2208.07174},
-  author = {Wu, Han and Rowlands, Sareh and Wahlstrom, Johan},
-  title = {A Man-in-the-Middle Attack against Object Detection Systems},
-  publisher = {arXiv},
-  year = {2022}
-}
-```
-
