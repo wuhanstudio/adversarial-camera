@@ -47,7 +47,7 @@ Alternatively, you can try real-time white-box attacks using our toolbox.
 pip install whitebox-adversarial-toolbox
 ```
 
-<a href="https://github.com/wuhanstudio/whitebox-adversarial-toolbox"><img src="https://camo.githubusercontent.com/1aa1ac6b346540aa672c2f89fe93dc2e23ee478331fe9ad0f1c26d527fcdad8f/68747470733a2f2f776861742e777568616e73747564696f2e756b2f696d616765732f776861742e706e67" width=35%></a>
+<a href="https://github.com/wuhanstudio/whitebox-adversarial-toolbox"><img src="https://camo.githubusercontent.com/5b6d9774999ebedfa0c28b3a5159432d794bdd29412cea9f04636631bd7fca7b/68747470733a2f2f776861742e777568616e73747564696f2e756b2f696d616765732f776861742e706e67" width=35%></a>
 
 ### Usage (CLI)
 
